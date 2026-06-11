@@ -10,7 +10,7 @@ const BOOKINGS_FILE = path.join(__dirname, 'bookings.json');
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize bookings file if it doesn't exist
 if (!fs.existsSync(BOOKINGS_FILE)) {
