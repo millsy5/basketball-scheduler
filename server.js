@@ -35,7 +35,6 @@ app.get('/api/bookings', async (req, res) => {
 
 // API: Unbook a single instance of a recurring booking
 app.post('/api/unbook-instance', async (req, res) => {
-  console.log('unbook-instance endpoint called');
   const { day, time, date, school, year } = req.body;
   
   if (!day || !time || !date) {
@@ -55,11 +54,8 @@ app.post('/api/unbook-instance', async (req, res) => {
       .single();
     
     if (fetchError || !bookings) {
-      console.log('Recurring booking not found', { day, time, date, school, year });
       return res.status(404).json({ error: 'Recurring booking not found' });
     }
-    
-    console.log('Unbook instance request', { day, time, date, school, year, booking: bookings });
     
     // Add the date to exceptions if not already there
     const exceptions = bookings.exceptions || [];
@@ -159,10 +155,7 @@ app.post('/api/book', async (req, res) => {
 
 // API: Unbook a specific slot
 app.post('/api/unbook', async (req, res) => {
-  console.log('POST /api/unbook called');
   const { day, date, time, school, year } = req.body;
-  
-  console.log('Request body:', { day, date, time, school, year });
   
   if (!day || !time) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -194,12 +187,9 @@ app.post('/api/unbook', async (req, res) => {
     
     const { error, count } = await deleteQuery;
     
-    console.log('Unbook result:', { error, count });
-    
     if (error) throw error;
     
     if (count === 0) {
-      console.log('Unbook failed - booking not found', { day, date, time, school, year });
       return res.status(404).json({ error: 'Booking not found' });
     }
     

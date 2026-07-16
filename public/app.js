@@ -447,7 +447,6 @@ function getWeeksInMonth(year, month) {
 
 // Create a slot cell for the table (with date support)
 function createSlotCellForDate(day, date, time, booking, isCurrentMonth) {
-    console.log('createSlotCellForDate called', { day, date, time, booking, isCurrentMonth });
     const cell = document.createElement('td');
     
     // Grey out cells for previous/next month dates
@@ -489,7 +488,6 @@ function createSlotCellForDate(day, date, time, booking, isCurrentMonth) {
         `;
         const button = cell.querySelector('button');
         button.addEventListener('click', () => {
-            console.log('Unbook button clicked', { day, date, time, isRecurring: booking.is_recurring });
             unbookSlot(day, date, time, booking.is_recurring);
         });
     } else {
@@ -507,7 +505,6 @@ function createSlotCellForDate(day, date, time, booking, isCurrentMonth) {
         `;
         const button = cell.querySelector('button');
         button.addEventListener('click', () => {
-            console.log('Book button clicked', { day, date, time });
             openBookingModal(day, date, time);
         });
     }
@@ -554,14 +551,8 @@ function findBookingForDate(date, time) {
     return null;
 }
 
-// Find a booking for a specific day and time (legacy, for compatibility)
-function findBooking(day, time) {
-    return bookings.find(b => b.day === day && b.time === time);
-}
-
 // Open the booking modal
 function openBookingModal(day, date, time) {
-    console.log('openBookingModal called', { day, date, time });
     selectedSlot = { day, date, time };
     
     // Check if this is from monthly view (time is '9:00 AM' default)
@@ -613,9 +604,7 @@ function closeModal() {
 
 // Open the unbooking options modal
 function openUnbookModal(day, date, time) {
-    console.log('openUnbookModal called', { day, date, time });
     pendingUnbook = { day, date, time };
-    console.log('pendingUnbook set to', pendingUnbook);
     document.getElementById('unbookModalInfo').textContent = `${day} (${date}) at ${time}`;
     document.getElementById('unbookModal').classList.remove('hidden');
     document.getElementById('unbookModal').classList.add('flex');
@@ -623,16 +612,13 @@ function openUnbookModal(day, date, time) {
 
 // Close the unbooking modal
 function closeUnbookModal() {
-    console.log('closeUnbookModal called');
     document.getElementById('unbookModal').classList.add('hidden');
     document.getElementById('unbookModal').classList.remove('flex');
     pendingUnbook = null;
-    console.log('pendingUnbook set to null');
 }
 
 // Handle unbook single instance choice
 async function unbookSingleInstanceChoice() {
-    console.log('unbookSingleInstanceChoice called', pendingUnbook);
     if (!pendingUnbook) return;
     
     // Save values before closing modal
@@ -643,7 +629,6 @@ async function unbookSingleInstanceChoice() {
 
 // Handle unbook recurring booking choice
 async function unbookRecurringChoice() {
-    console.log('unbookRecurringChoice called', pendingUnbook);
     if (!pendingUnbook) return;
     
     // Save values before closing modal
@@ -676,8 +661,6 @@ async function confirmBooking() {
         duration = parseInt(document.getElementById('durationDropdown').value);
     }
     
-    console.log('confirmBooking called', { selectedSlot, name, bookingType, gender, time, duration });
-    
     if (!name) {
         showToast('Please enter your name', 'error');
         return;
@@ -707,9 +690,7 @@ async function confirmBooking() {
             })
         });
 
-        console.log('Booking response status:', response.status);
         const data = await response.json();
-        console.log('Booking response data:', data);
 
         if (response.ok) {
             showToast('Booking confirmed! 🏀', 'success');
@@ -727,8 +708,6 @@ async function confirmBooking() {
 
 // Unbook a slot
 async function unbookSlot(day, date, time, isRecurring) {
-    console.log('unbookSlot called', { day, date, time, isRecurring });
-    
     if (isRecurring) {
         // For recurring bookings, show the custom unbooking options modal
         openUnbookModal(day, date, time);
@@ -775,8 +754,6 @@ async function unbookSingleInstance(day, date, time) {
 
 // Remove entire recurring booking
 async function unbookRecurringBooking(day, time) {
-    console.log('unbookRecurringBooking called', { day, time });
-
     try {
         const response = await fetch('/api/unbook', {
             method: 'POST',
@@ -791,9 +768,7 @@ async function unbookRecurringBooking(day, time) {
             })
         });
 
-        console.log('unbookRecurringBooking response status:', response.status);
         const data = await response.json();
-        console.log('unbookRecurringBooking response data:', data);
 
         if (response.ok) {
             showToast('Recurring booking removed successfully', 'success');
