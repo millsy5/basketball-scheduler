@@ -32,10 +32,13 @@
 
             <!-- View Controls -->
             <div class="flex flex-col gap-4 mb-6">
-                <div class="flex gap-2">
-                    <button onclick="selectSchool('Colaiste Choilm')" id="school-Colaiste Choilm" class="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Colaiste Choilm</button>
-                    <button onclick="selectSchool('Ballincollig Community School')" id="school-Ballincollig Community School" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold">Ballincollig Community School</button>
-                    <button onclick="selectSchool('Bishopstown Community School')" id="school-Bishopstown Community School" class="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Bishopstown Community School</button>
+                <div class="flex items-center gap-4">
+                    <label class="text-gray-700 font-semibold">Venue:</label>
+                    <select onchange="selectSchool(this.value)" id="schoolDropdown" class="px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                        <option value="Colaiste Choilm">Colaiste Choilm</option>
+                        <option value="Ballincollig Community School" selected>Ballincollig Community School</option>
+                        <option value="Bishopstown Community School">Bishopstown Community School</option>
+                    </select>
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex gap-2">

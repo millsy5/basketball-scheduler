@@ -40,16 +40,11 @@ function selectYear(year) {
 function selectSchool(school) {
     currentSchool = school;
     
-    // Update button styles
-    const schools = ['Colaiste Choilm', 'Ballincollig Community School', 'Bishopstown Community School'];
-    schools.forEach(s => {
-        const button = document.getElementById(`school-${s}`);
-        if (button) {
-            button.className = s === school 
-                ? 'px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
-                : 'px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
-        }
-    });
+    // Update dropdown selection
+    const schoolDropdown = document.getElementById('schoolDropdown');
+    if (schoolDropdown) {
+        schoolDropdown.value = school;
+    }
     
     renderSchedule();
 }
