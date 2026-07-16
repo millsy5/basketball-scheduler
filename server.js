@@ -33,11 +33,6 @@ app.get('/api/bookings', async (req, res) => {
   }
 });
 
-// API: Test endpoint
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Server is working' });
-});
-
 // API: Unbook a single instance of a recurring booking
 app.post('/api/unbook-instance', async (req, res) => {
   console.log('unbook-instance endpoint called');
@@ -182,22 +177,6 @@ app.post('/api/unbook', async (req, res) => {
   } catch (error) {
     console.error('Error unbooking slot:', error);
     res.status(500).json({ error: 'Failed to unbook slot' });
-  }
-});
-
-// API: Clear all bookings (optional - for testing)
-app.delete('/api/bookings', async (req, res) => {
-  try {
-    const { error } = await supabase
-      .from('bookings')
-      .delete()
-      .neq('id', 0); // Delete all rows
-    
-    if (error) throw error;
-    res.json({ success: true, message: 'All bookings cleared' });
-  } catch (error) {
-    console.error('Error clearing bookings:', error);
-    res.status(500).json({ error: 'Failed to clear bookings' });
   }
 });
 
