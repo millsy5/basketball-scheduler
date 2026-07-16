@@ -380,13 +380,13 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
                 const booking = findBookingForDate(dayInfo.date, time);
                 const slotCell = createSlotCellForDate(dayInfo.day, dayInfo.date, time, booking, dayInfo.isCurrentMonth);
                 
-                // Check if this booking spans to the next time slot (1-hour booking)
-                if (booking && booking.end_time && timeIndex < timeSlots.length - 1) {
-                    const nextTime = timeSlots[timeIndex + 1];
-                    if (booking.end_time === nextTime) {
-                        // This is a 1-hour booking, merge with next time slot
-                        slotCell.setAttribute('rowspan', '2');
-                        activeRowspans[dayIndex] = 1; // Mark this column as having an active rowspan
+                // Check if this booking spans multiple time slots
+                if (booking && booking.end_time && booking.duration && timeIndex < timeSlots.length - 1) {
+                    const numberOfSlots = booking.duration / 30;
+                    if (numberOfSlots > 1) {
+                        // This is a multi-slot booking, merge cells
+                        slotCell.setAttribute('rowspan', numberOfSlots);
+                        activeRowspans[dayIndex] = numberOfSlots - 1; // Mark this column as having active rowspan
                     }
                 }
                 
