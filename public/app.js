@@ -183,10 +183,11 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const firstDay = new Date(currentYear, currentMonth, 1);
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 for Monday, etc.
 
     // Add empty cells for days before the first day of the month
-    const adjustedStartDay = (startDayOfWeek + 6) % 7; // Adjust to Monday=0
+    // Adjust so Monday is 0, Sunday is 6
+    const adjustedStartDay = (startDayOfWeek + 6) % 7;
     for (let i = 0; i < adjustedStartDay; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'bg-gray-100 rounded-lg min-h-[100px]';
@@ -209,12 +210,23 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
         dayNumber.textContent = day;
         cell.appendChild(dayNumber);
 
-        // Get bookings for this day
-        const dayBookings = bookings.filter(b => 
+        // Get bookings for this day (including recurring bookings)
+        const dayBookings = [];
+        
+        // Check one-time bookings
+        bookings.filter(b => 
             b.date === dateString && 
             b.school === currentSchool && 
             b.year === currentYear
-        );
+        ).forEach(b => dayBookings.push(b));
+        
+        // Check recurring bookings (don't filter by year for recurring - they persist across years)
+        bookings.filter(b => 
+            b.is_recurring && 
+            b.day === dayName && 
+            b.school === currentSchool &&
+            (!b.exceptions || !b.exceptions.includes(dateString))
+        ).forEach(b => dayBookings.push(b));
 
         // Bookings container with scrollbar
         const bookingsContainer = document.createElement('div');
@@ -458,7 +470,7 @@ function findBookingForDate(date, time) {
         return oneTimeBooking;
     }
 
-    // Then, check for recurring bookings that match this day of week
+    // Then, check for recurring bookings that match this day of week (don't filter by year - persist across years)
     const dayOfWeek = new Date(date).getDay();
     // getDay() returns 0 for Sunday, 1 for Monday, etc.
     // Our days array starts with Monday at index 0, so we need to adjust
@@ -469,8 +481,7 @@ function findBookingForDate(date, time) {
         b.is_recurring && 
         b.day === dayName && 
         b.time === time &&
-        b.school === currentSchool &&
-        b.year === currentYear
+        b.school === currentSchool
     );
     
     if (recurringBooking) {

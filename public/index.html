@@ -23,11 +23,6 @@
         <main class="flex-1 p-8">
             <!-- Header -->
             <header class="flex items-center justify-center mb-8 gap-4">
-                <div class="flex flex-col gap-2 mr-8">
-                    <button onclick="selectSchool('Colaiste Choilm')" id="school-Colaiste Choilm" class="text-left px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Colaiste Choilm</button>
-                    <button onclick="selectSchool('Ballincollig Community School')" id="school-Ballincollig Community School" class="text-left px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold">Ballincollig Community School</button>
-                    <button onclick="selectSchool('Bishopstown Community School')" id="school-Bishopstown Community School" class="text-left px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Bishopstown Community School</button>
-                </div>
                 <img src="BBC logo.jpeg" alt="BBC Logo" class="h-40 w-auto">
                 <div>
                     <h1 class="text-4xl font-bold text-red-600 mb-2">🏀 Ballincollig Basketball Club</h1>
@@ -37,21 +32,26 @@
 
             <!-- View Controls -->
             <div class="flex items-center justify-between mb-6">
-                <div class="flex flex-col gap-2">
-                    <div class="flex gap-2">
+                <div class="flex gap-4">
+                    <div class="flex flex-col gap-2">
+                        <button onclick="selectSchool('Colaiste Choilm')" id="school-Colaiste Choilm" class="text-left px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Colaiste Choilm</button>
+                        <button onclick="selectSchool('Ballincollig Community School')" id="school-Ballincollig Community School" class="text-left px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold">Ballincollig Community School</button>
+                        <button onclick="selectSchool('Bishopstown Community School')" id="school-Bishopstown Community School" class="text-left px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Bishopstown Community School</button>
+                    </div>
+                    <div class="flex flex-col gap-2">
                         <button onclick="setViewMode('weekly')" id="viewWeekly" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold">Weekly View</button>
                         <button onclick="setViewMode('monthly')" id="viewMonthly" class="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition">Monthly View</button>
                     </div>
-                    <div id="weekSelector" class="flex items-center gap-2">
-                        <label class="text-gray-700 font-semibold">Week:</label>
-                        <select onchange="selectWeek(this.value)" id="weekDropdown" class="px-4 py-2 rounded-lg border border-gray-300 bg-white">
-                            <option value="1">Week 1</option>
-                            <option value="2">Week 2</option>
-                            <option value="3">Week 3</option>
-                            <option value="4">Week 4</option>
-                            <option value="5">Week 5</option>
-                        </select>
-                    </div>
+                </div>
+                <div id="weekSelector" class="flex items-center gap-2">
+                    <label class="text-gray-700 font-semibold">Week:</label>
+                    <select onchange="selectWeek(this.value)" id="weekDropdown" class="px-4 py-2 rounded-lg border border-gray-300 bg-white">
+                        <option value="1">Week 1</option>
+                        <option value="2">Week 2</option>
+                        <option value="3">Week 3</option>
+                        <option value="4">Week 4</option>
+                        <option value="5">Week 5</option>
+                    </select>
                 </div>
             </div>
 
