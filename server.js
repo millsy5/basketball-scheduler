@@ -36,7 +36,7 @@ app.get('/api/bookings', async (req, res) => {
 // API: Unbook a single instance of a recurring booking
 app.post('/api/unbook-instance', async (req, res) => {
   console.log('unbook-instance endpoint called');
-  const { day, time, date } = req.body;
+  const { day, time, date, school, year } = req.body;
   
   if (!day || !time || !date) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -50,14 +50,16 @@ app.post('/api/unbook-instance', async (req, res) => {
       .eq('day', day)
       .eq('time', time)
       .eq('is_recurring', true)
+      .eq('school', school)
+      .eq('year', year)
       .single();
     
     if (fetchError || !bookings) {
-      console.log('Recurring booking not found', { day, time, date });
+      console.log('Recurring booking not found', { day, time, date, school, year });
       return res.status(404).json({ error: 'Recurring booking not found' });
     }
     
-    console.log('Unbook instance request', { day, time, date, booking: bookings });
+    console.log('Unbook instance request', { day, time, date, school, year, booking: bookings });
     
     // Add the date to exceptions if not already there
     const exceptions = bookings.exceptions || [];
@@ -81,7 +83,7 @@ app.post('/api/unbook-instance', async (req, res) => {
 
 // API: Book a slot
 app.post('/api/book', async (req, res) => {
-  const { day, date, time, name, is_recurring } = req.body;
+  const { day, date, time, name, is_recurring, gender, school, year } = req.body;
   
   if (!day || !time || !name) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -96,14 +98,18 @@ app.post('/api/book', async (req, res) => {
         .delete()
         .eq('day', day)
         .eq('time', time)
-        .eq('is_recurring', true);
+        .eq('is_recurring', true)
+        .eq('school', school)
+        .eq('year', year);
     } else {
       deleteQuery = supabase
         .from('bookings')
         .delete()
         .eq('date', date)
         .eq('time', time)
-        .eq('is_recurring', false);
+        .eq('is_recurring', false)
+        .eq('school', school)
+        .eq('year', year);
     }
     
     const { error: deleteError } = await deleteQuery;
@@ -119,6 +125,9 @@ app.post('/api/book', async (req, res) => {
         name,
         is_recurring: is_recurring || false,
         exceptions: [],
+        gender: gender || 'Boys',
+        school: school || 'Ballincollig Basketball Club',
+        year: year || 2026,
         created_at: new Date().toISOString()
       });
     
@@ -134,9 +143,9 @@ app.post('/api/book', async (req, res) => {
 // API: Unbook a specific slot
 app.post('/api/unbook', async (req, res) => {
   console.log('POST /api/unbook called');
-  const { day, date, time } = req.body;
+  const { day, date, time, school, year } = req.body;
   
-  console.log('Request body:', { day, date, time });
+  console.log('Request body:', { day, date, time, school, year });
   
   if (!day || !time) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -151,7 +160,9 @@ app.post('/api/unbook', async (req, res) => {
         .delete()
         .eq('date', date)
         .eq('time', time)
-        .eq('is_recurring', false);
+        .eq('is_recurring', false)
+        .eq('school', school)
+        .eq('year', year);
     } else {
       // For recurring bookings, match by day and time
       deleteQuery = supabase
@@ -159,7 +170,9 @@ app.post('/api/unbook', async (req, res) => {
         .delete()
         .eq('day', day)
         .eq('time', time)
-        .eq('is_recurring', true);
+        .eq('is_recurring', true)
+        .eq('school', school)
+        .eq('year', year);
     }
     
     const { error, count } = await deleteQuery;
@@ -169,7 +182,7 @@ app.post('/api/unbook', async (req, res) => {
     if (error) throw error;
     
     if (count === 0) {
-      console.log('Unbook failed - booking not found', { day, date, time });
+      console.log('Unbook failed - booking not found', { day, date, time, school, year });
       return res.status(404).json({ error: 'Booking not found' });
     }
     

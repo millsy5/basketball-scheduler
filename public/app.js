@@ -16,7 +16,46 @@ let bookings = [];
 let selectedSlot = null;
 let currentYear = 2026;
 let currentMonth = new Date().getMonth(); // Current month
+let currentSchool = 'Ballincollig Basketball Club';
 let pendingUnbook = null; // Track pending unbooking operation
+
+// Select year
+function selectYear(year) {
+    currentYear = year;
+    
+    // Update button styles
+    document.getElementById('year2026').className = year === 2026 
+        ? 'text-xl font-bold text-white bg-red-600 px-4 py-2 rounded-lg' 
+        : 'text-xl font-bold text-white bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600';
+    document.getElementById('year2027').className = year === 2027 
+        ? 'text-xl font-bold text-white bg-red-600 px-4 py-2 rounded-lg' 
+        : 'text-xl font-bold text-white bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600';
+    
+    renderSchedule();
+}
+
+// Select school
+function selectSchool(school) {
+    currentSchool = school;
+    
+    // Update button styles
+    const schools = ['Colaiste Choilm', 'Ballincollig Community School', 'Bishopstown Community School', 'Ballincollig Basketball Club'];
+    schools.forEach(s => {
+        const button = document.getElementById(`school-${s}`);
+        if (button) {
+            button.className = s === school 
+                ? 'text-left px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
+                : 'text-left px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
+        }
+    });
+    
+    // Update title
+    document.getElementById('clubTitle').textContent = school === 'Ballincollig Basketball Club' 
+        ? '🏀 Ballincollig Basketball Club' 
+        : `🏀 ${school}`;
+    
+    renderSchedule();
+}
 
 // Initialize the app
 async function init() {
@@ -206,7 +245,8 @@ function createSlotCellForDate(day, date, time, booking, isCurrentMonth) {
 
     if (booking) {
         // Booked slot in current month
-        cell.className = 'px-2 py-2 border border-gray-200 text-center bg-gray-100';
+        const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
+        cell.className = `px-2 py-2 border border-gray-200 text-center ${bgColor}`;
         cell.innerHTML = `
             <div class="text-xs font-semibold text-gray-800 truncate">${booking.name}${booking.is_recurring ? ' ♻️' : ''}</div>
             <button 
@@ -251,7 +291,13 @@ function createSlotCellForDate(day, date, time, booking, isCurrentMonth) {
 // Find a booking for a specific date and time (checks exceptions for recurring bookings)
 function findBookingForDate(date, time) {
     // First, check for a one-time booking on this specific date
-    const oneTimeBooking = bookings.find(b => !b.is_recurring && b.date === date && b.time === time);
+    const oneTimeBooking = bookings.find(b => 
+        !b.is_recurring && 
+        b.date === date && 
+        b.time === time &&
+        b.school === currentSchool &&
+        b.year === currentYear
+    );
     if (oneTimeBooking) {
         return oneTimeBooking;
     }
@@ -263,7 +309,13 @@ function findBookingForDate(date, time) {
     const dayIndex = (dayOfWeek + 6) % 7;
     const dayName = days[dayIndex];
     
-    const recurringBooking = bookings.find(b => b.is_recurring && b.day === dayName && b.time === time);
+    const recurringBooking = bookings.find(b => 
+        b.is_recurring && 
+        b.day === dayName && 
+        b.time === time &&
+        b.school === currentSchool &&
+        b.year === currentYear
+    );
     
     if (recurringBooking) {
         // Check if this specific date is in the exceptions
@@ -349,8 +401,9 @@ window.closeUnbookModal = closeUnbookModal;
 async function confirmBooking() {
     const name = document.getElementById('playerName').value.trim();
     const bookingType = document.querySelector('input[name="bookingType"]:checked').value;
+    const gender = document.querySelector('input[name="gender"]:checked').value;
     
-    console.log('confirmBooking called', { selectedSlot, name, bookingType });
+    console.log('confirmBooking called', { selectedSlot, name, bookingType, gender });
     
     if (!name) {
         showToast('Please enter your name', 'error');
@@ -373,7 +426,10 @@ async function confirmBooking() {
                 date: selectedSlot.date,
                 time: selectedSlot.time,
                 name: name,
-                is_recurring: bookingType === 'recurring'
+                is_recurring: bookingType === 'recurring',
+                gender: gender,
+                school: currentSchool,
+                year: currentYear
             })
         });
 
@@ -422,7 +478,9 @@ async function unbookSingleInstance(day, date, time) {
             body: JSON.stringify({
                 day: day,
                 time: time,
-                date: date
+                date: date,
+                school: currentSchool,
+                year: currentYear
             })
         });
 
@@ -453,7 +511,9 @@ async function unbookRecurringBooking(day, time) {
             },
             body: JSON.stringify({
                 day: day,
-                time: time
+                time: time,
+                school: currentSchool,
+                year: currentYear
             })
         });
 
@@ -485,7 +545,9 @@ async function unbookOneTimeBooking(day, date, time) {
             body: JSON.stringify({
                 day: day,
                 date: date,
-                time: time
+                time: time,
+                school: currentSchool,
+                year: currentYear
             })
         });
 
