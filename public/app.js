@@ -75,7 +75,7 @@ function setViewMode(mode) {
     // Show/hide week selector based on view mode
     const weekSelector = document.getElementById('weekSelector');
     if (weekSelector) {
-        weekSelector.style.display = mode === 'weekly' ? 'block' : 'none';
+        weekSelector.style.display = mode === 'weekly' ? 'flex' : 'none';
     }
     
     renderSchedule();
@@ -150,14 +150,100 @@ function renderSchedule() {
         });
     }
 
+    // Render based on view mode
+    if (viewMode === 'monthly') {
+        renderMonthlyView(scheduleContainer, weeksInMonth);
+    } else {
+        renderWeeklyView(scheduleContainer, weeksInMonth);
+    }
+}
+
+// Render monthly view (calendar grid)
+function renderMonthlyView(scheduleContainer, weeksInMonth) {
+    // Create calendar grid
+    const calendarGrid = document.createElement('div');
+    calendarGrid.className = 'bg-white rounded-xl shadow-md p-4';
+
+    // Create day headers
+    const dayHeaders = document.createElement('div');
+    dayHeaders.className = 'grid grid-cols-7 gap-2 mb-2';
+    days.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'text-center font-bold text-gray-700 py-2';
+        dayHeader.textContent = day.substring(0, 3);
+        dayHeaders.appendChild(dayHeader);
+    });
+    calendarGrid.appendChild(dayHeaders);
+
+    // Create calendar cells
+    const calendarCells = document.createElement('div');
+    calendarCells.className = 'grid grid-cols-7 gap-2';
+
+    // Get all dates in the month
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+    // Add empty cells for days before the first day of the month
+    const adjustedStartDay = (startDayOfWeek + 6) % 7; // Adjust to Monday=0
+    for (let i = 0; i < adjustedStartDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[100px]';
+        calendarCells.appendChild(emptyCell);
+    }
+
+    // Add cells for each day of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+        const dayName = days[(dayOfWeek + 6) % 7];
+
+        const cell = document.createElement('div');
+        cell.className = 'border border-gray-200 rounded-lg p-2 min-h-[100px] bg-white hover:bg-gray-50 cursor-pointer';
+        cell.onclick = () => openBookingModal(dayName, dateString, '9:00 AM');
+
+        // Day number
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'font-bold text-gray-700 mb-1';
+        dayNumber.textContent = day;
+        cell.appendChild(dayNumber);
+
+        // Get bookings for this day
+        const dayBookings = bookings.filter(b => 
+            b.date === dateString && 
+            b.school === currentSchool && 
+            b.year === currentYear
+        );
+
+        // Bookings container with scrollbar
+        const bookingsContainer = document.createElement('div');
+        bookingsContainer.className = 'space-y-1 max-h-[80px] overflow-y-auto';
+        
+        dayBookings.forEach(booking => {
+            const bookingEl = document.createElement('div');
+            const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
+            bookingEl.className = `text-xs p-1 rounded ${bgColor} truncate`;
+            bookingEl.textContent = `${booking.time} - ${booking.name}`;
+            bookingsContainer.appendChild(bookingEl);
+        });
+
+        cell.appendChild(bookingsContainer);
+        calendarCells.appendChild(cell);
+    }
+
+    calendarGrid.appendChild(calendarCells);
+    scheduleContainer.appendChild(calendarGrid);
+}
+
+// Render weekly view (time slot grid)
+function renderWeeklyView(scheduleContainer, weeksInMonth) {
     // Filter weeks based on view mode
-    const weeksToRender = viewMode === 'weekly' 
-        ? [weeksInMonth[currentWeek - 1]] 
-        : weeksInMonth;
+    const weeksToRender = [weeksInMonth[currentWeek - 1]];
 
     // Render each week as a horizontal grid
     weeksToRender.forEach((week, weekIndex) => {
-        const actualWeekIndex = viewMode === 'weekly' ? currentWeek - 1 : weekIndex;
+        const actualWeekIndex = currentWeek - 1;
         const weekContainer = document.createElement('div');
         weekContainer.className = 'mb-6';
 
