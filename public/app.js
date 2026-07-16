@@ -333,22 +333,22 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
 
         // Create table
         const table = document.createElement('table');
-        table.className = 'w-full border-collapse';
+        table.className = 'w-full border-collapse border-spacing-0';
 
         // Create header row with days and dates
         const headerRow = document.createElement('tr');
-        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white sticky top-0 z-10';
+        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white';
 
         // Time column header
         const timeHeader = document.createElement('th');
-        timeHeader.className = 'px-4 py-3 text-left font-bold sticky left-0 bg-red-800 z-20';
+        timeHeader.className = 'px-4 py-3 text-left font-bold sticky left-0 top-0 bg-red-800 z-20';
         timeHeader.textContent = 'Time';
         headerRow.appendChild(timeHeader);
 
         // Day headers with dates
         week.forEach(dayInfo => {
             const dayHeader = document.createElement('th');
-            dayHeader.className = `px-4 py-3 text-center font-bold min-w-[100px] ${dayInfo.isCurrentMonth ? '' : 'bg-gray-400'}`;
+            dayHeader.className = `px-4 py-3 text-center font-bold min-w-[100px] sticky top-0 ${dayInfo.isCurrentMonth ? '' : 'bg-gray-400'}`;
             dayHeader.innerHTML = `${dayInfo.day}<br><span class="text-xs">${dayInfo.date}</span>`;
             headerRow.appendChild(dayHeader);
         });
