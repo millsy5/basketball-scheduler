@@ -583,9 +583,10 @@ function openBookingModal(day, date, time) {
             timeDropdown.appendChild(option);
         });
     } else {
-        // Hide time and duration dropdowns for weekly view
+        // Hide time dropdown for weekly view (time is already selected)
         document.getElementById('timeSelection').classList.add('hidden');
-        document.getElementById('durationSelection').classList.add('hidden');
+        // Show duration dropdown for weekly view
+        document.getElementById('durationSelection').classList.remove('hidden');
         document.getElementById('modalSlotInfo').textContent = `${day} (${date}) at ${time}`;
     }
     
@@ -650,7 +651,7 @@ async function confirmBooking() {
     const bookingType = document.querySelector('input[name="bookingType"]:checked').value;
     const gender = document.querySelector('input[name="gender"]:checked').value;
     
-    // Check if this is monthly view booking (time and duration dropdowns are visible)
+    // Check if this is monthly view booking (time dropdown is visible)
     const isMonthlyView = !document.getElementById('timeSelection').classList.contains('hidden');
     
     let time = selectedSlot.time;
@@ -658,8 +659,10 @@ async function confirmBooking() {
     
     if (isMonthlyView) {
         time = document.getElementById('timeDropdown').value;
-        duration = parseInt(document.getElementById('durationDropdown').value);
     }
+    
+    // Get duration from dropdown (available in both views)
+    duration = parseInt(document.getElementById('durationDropdown').value);
     
     if (!name) {
         showToast('Please enter your name', 'error');
