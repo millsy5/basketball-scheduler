@@ -20,6 +20,7 @@ let currentSchool = 'Colaiste Choilm';
 let currentWeek = 1; // Current week (1-based)
 let viewMode = 'weekly'; // 'weekly' or 'monthly'
 let pendingUnbook = null; // Track pending unbooking operation
+let isAuthenticated = false; // Track authentication state
 
 // Select year
 function selectYear(year) {
@@ -78,6 +79,13 @@ function setViewMode(mode) {
 
 // Initialize the app
 async function init() {
+    // Check authentication on page load
+    checkAuthentication();
+    
+    if (!isAuthenticated) {
+        return; // Don't load data if not authenticated
+    }
+    
     await loadBookings();
     renderMonthNavigation();
     
@@ -88,6 +96,59 @@ async function init() {
     }
     
     renderSchedule();
+}
+
+// Check authentication state
+function checkAuthentication() {
+    const auth = localStorage.getItem('auth');
+    if (auth === 'admin') {
+        isAuthenticated = true;
+        document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+    } else {
+        isAuthenticated = false;
+        document.getElementById('loginModal').classList.remove('hidden');
+        document.getElementById('mainContent').classList.add('hidden');
+    }
+}
+
+// Login function
+function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    if (username === 'admin' && password === 'admin1') {
+        isAuthenticated = true;
+        localStorage.setItem('auth', 'admin');
+        document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+        
+        // Load data after successful login
+        loadBookings();
+        renderMonthNavigation();
+        
+        // Set dropdown to match currentSchool
+        const schoolDropdown = document.getElementById('schoolDropdown');
+        if (schoolDropdown) {
+            schoolDropdown.value = currentSchool;
+        }
+        
+        renderSchedule();
+    } else {
+        showToast('Invalid username or password', 'error');
+    }
+}
+
+// Logout function
+function logout() {
+    isAuthenticated = false;
+    localStorage.removeItem('auth');
+    document.getElementById('loginModal').classList.remove('hidden');
+    document.getElementById('mainContent').classList.add('hidden');
+    
+    // Clear form fields
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
 }
 
 // Render month navigation sidebar
@@ -595,6 +656,8 @@ async function unbookRecurringChoice() {
 window.unbookSingleInstanceChoice = unbookSingleInstanceChoice;
 window.unbookRecurringChoice = unbookRecurringChoice;
 window.closeUnbookModal = closeUnbookModal;
+window.login = login;
+window.logout = logout;
 
 // Confirm the booking
 async function confirmBooking() {
