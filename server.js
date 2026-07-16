@@ -90,6 +90,19 @@ app.post('/api/book', async (req, res) => {
   }
 
   try {
+    // Calculate end time (1 hour later)
+    const timeIndex = ['9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM',
+      '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+      '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM',
+      '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM', '9:30 PM', '10:00 PM', '10:30 PM', '11:00 PM'].indexOf(time);
+    
+    const endTime = timeIndex !== -1 && timeIndex < 27 
+      ? ['9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM',
+        '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+        '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM',
+        '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM', '9:30 PM', '10:00 PM', '10:30 PM', '11:00 PM'][timeIndex + 2]
+      : null;
+
     // Remove any existing booking for this day/time (overwrite)
     let deleteQuery;
     if (is_recurring) {
@@ -115,7 +128,7 @@ app.post('/api/book', async (req, res) => {
     const { error: deleteError } = await deleteQuery;
     if (deleteError) throw deleteError;
 
-    // Add new booking
+    // Add new booking with 1-hour duration
     const { error: insertError } = await supabase
       .from('bookings')
       .insert({
@@ -128,6 +141,8 @@ app.post('/api/book', async (req, res) => {
         gender: gender || 'Boys',
         school: school || 'Ballincollig Basketball Club',
         year: year || 2026,
+        end_time: endTime,
+        duration: 60,
         created_at: new Date().toISOString()
       });
     
