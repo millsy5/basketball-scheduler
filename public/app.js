@@ -342,16 +342,12 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
 
         // Create header row with days and dates
         const headerRow = document.createElement('tr');
-        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white';
+        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white sticky-header';
 
         // Time column header
         const timeHeader = document.createElement('th');
-        timeHeader.className = 'px-4 py-3 text-left font-bold';
-        timeHeader.style.position = 'sticky';
-        timeHeader.style.left = '0';
-        timeHeader.style.top = '0';
+        timeHeader.className = 'px-4 py-3 text-left font-bold sticky-left';
         timeHeader.style.backgroundColor = '#991b1b';
-        timeHeader.style.zIndex = '20';
         timeHeader.textContent = 'Time';
         headerRow.appendChild(timeHeader);
 
@@ -359,10 +355,7 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
         week.forEach(dayInfo => {
             const dayHeader = document.createElement('th');
             dayHeader.className = 'px-4 py-3 text-center font-bold min-w-[100px]';
-            dayHeader.style.position = 'sticky';
-            dayHeader.style.top = '0';
             dayHeader.style.backgroundColor = dayInfo.isCurrentMonth ? '#dc2626' : '#9ca3af';
-            dayHeader.style.zIndex = '10';
             dayHeader.innerHTML = `${dayInfo.day}<br><span class="text-xs">${dayInfo.date}</span>`;
             headerRow.appendChild(dayHeader);
         });
