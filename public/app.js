@@ -329,7 +329,7 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
 
         // Create table container
         const tableContainer = document.createElement('div');
-        tableContainer.className = 'bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto';
+        tableContainer.className = 'bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto max-h-[600px] overflow-y-auto';
 
         // Create table
         const table = document.createElement('table');
@@ -337,11 +337,11 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
 
         // Create header row with days and dates
         const headerRow = document.createElement('tr');
-        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white';
+        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white sticky top-0 z-10';
 
         // Time column header
         const timeHeader = document.createElement('th');
-        timeHeader.className = 'px-4 py-3 text-left font-bold sticky left-0 bg-red-800';
+        timeHeader.className = 'px-4 py-3 text-left font-bold sticky left-0 bg-red-800 z-20';
         timeHeader.textContent = 'Time';
         headerRow.appendChild(timeHeader);
 
