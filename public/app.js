@@ -80,6 +80,13 @@ function setViewMode(mode) {
 async function init() {
     await loadBookings();
     renderMonthNavigation();
+    
+    // Set dropdown to match currentSchool
+    const schoolDropdown = document.getElementById('schoolDropdown');
+    if (schoolDropdown) {
+        schoolDropdown.value = currentSchool;
+    }
+    
     renderSchedule();
 }
 
