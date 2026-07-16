@@ -502,7 +502,41 @@ function findBooking(day, time) {
 function openBookingModal(day, date, time) {
     console.log('openBookingModal called', { day, date, time });
     selectedSlot = { day, date, time };
-    document.getElementById('modalSlotInfo').textContent = `${day} (${date}) at ${time}`;
+    
+    // Check if this is from monthly view (time is '9:00 AM' default)
+    const isMonthlyView = time === '9:00 AM' && viewMode === 'monthly';
+    
+    if (isMonthlyView) {
+        // Show time and duration dropdowns for monthly view
+        document.getElementById('timeSelection').classList.remove('hidden');
+        document.getElementById('durationSelection').classList.remove('hidden');
+        document.getElementById('modalSlotInfo').textContent = `${day} (${date})`;
+        
+        // Populate time dropdown with available times
+        const timeDropdown = document.getElementById('timeDropdown');
+        timeDropdown.innerHTML = '';
+        
+        timeSlots.forEach(t => {
+            const option = document.createElement('option');
+            option.value = t;
+            option.textContent = t;
+            
+            // Check if this time slot is already booked
+            const booking = findBookingForDate(date, t);
+            if (booking) {
+                option.disabled = true;
+                option.textContent += ' (booked)';
+            }
+            
+            timeDropdown.appendChild(option);
+        });
+    } else {
+        // Hide time and duration dropdowns for weekly view
+        document.getElementById('timeSelection').classList.add('hidden');
+        document.getElementById('durationSelection').classList.add('hidden');
+        document.getElementById('modalSlotInfo').textContent = `${day} (${date}) at ${time}`;
+    }
+    
     document.getElementById('playerName').value = '';
     document.getElementById('bookingModal').classList.remove('hidden');
     document.getElementById('bookingModal').classList.add('flex');
@@ -568,7 +602,18 @@ async function confirmBooking() {
     const bookingType = document.querySelector('input[name="bookingType"]:checked').value;
     const gender = document.querySelector('input[name="gender"]:checked').value;
     
-    console.log('confirmBooking called', { selectedSlot, name, bookingType, gender });
+    // Check if this is monthly view booking (time and duration dropdowns are visible)
+    const isMonthlyView = !document.getElementById('timeSelection').classList.contains('hidden');
+    
+    let time = selectedSlot.time;
+    let duration = 60; // Default 1 hour
+    
+    if (isMonthlyView) {
+        time = document.getElementById('timeDropdown').value;
+        duration = parseInt(document.getElementById('durationDropdown').value);
+    }
+    
+    console.log('confirmBooking called', { selectedSlot, name, bookingType, gender, time, duration });
     
     if (!name) {
         showToast('Please enter your name', 'error');
@@ -589,12 +634,13 @@ async function confirmBooking() {
             body: JSON.stringify({
                 day: selectedSlot.day,
                 date: selectedSlot.date,
-                time: selectedSlot.time,
+                time: time,
                 name: name,
                 is_recurring: bookingType === 'recurring',
                 gender: gender,
                 school: currentSchool,
-                year: currentYear
+                year: currentYear,
+                duration: duration
             })
         });
 

@@ -68,6 +68,25 @@
             <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Book Training Slot</h3>
                 <p id="modalSlotInfo" class="text-gray-600 mb-4"></p>
+                
+                <!-- Time selection (for monthly view) -->
+                <div id="timeSelection" class="mb-4 hidden">
+                    <label class="block text-gray-700 font-semibold mb-2">Select Time:</label>
+                    <select id="timeDropdown" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <!-- Time options will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <!-- Duration selection -->
+                <div id="durationSelection" class="mb-4 hidden">
+                    <label class="block text-gray-700 font-semibold mb-2">Duration:</label>
+                    <select id="durationDropdown" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="60">1 hour</option>
+                        <option value="90">1.5 hours</option>
+                        <option value="120">2 hours</option>
+                    </select>
+                </div>
+                
                 <input 
                     type="text" 
                     id="playerName" 
