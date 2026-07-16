@@ -130,7 +130,7 @@ app.post('/api/book', async (req, res) => {
     const { error: deleteError } = await deleteQuery;
     if (deleteError) throw deleteError;
 
-    // Add new booking with 1-hour duration
+    // Add new booking with dynamic duration
     const { error: insertError } = await supabase
       .from('bookings')
       .insert({
@@ -144,7 +144,7 @@ app.post('/api/book', async (req, res) => {
         school: school || 'Ballincollig Basketball Club',
         year: year || 2026,
         end_time: endTime,
-        duration: 60,
+        duration: durationInMinutes || 60,
         created_at: new Date().toISOString()
       });
     
