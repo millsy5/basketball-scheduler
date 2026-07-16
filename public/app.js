@@ -17,6 +17,8 @@ let selectedSlot = null;
 let currentYear = 2026;
 let currentMonth = new Date().getMonth(); // Current month
 let currentSchool = 'Ballincollig Community School';
+let currentWeek = 1; // Current week (1-based)
+let viewMode = 'weekly'; // 'weekly' or 'monthly'
 let pendingUnbook = null; // Track pending unbooking operation
 
 // Select year
@@ -49,8 +51,32 @@ function selectSchool(school) {
         }
     });
     
-    // Update title
-    document.getElementById('clubTitle').textContent = `🏀 ${school}`;
+    renderSchedule();
+}
+
+// Select week
+function selectWeek(week) {
+    currentWeek = parseInt(week);
+    renderSchedule();
+}
+
+// Toggle view mode
+function setViewMode(mode) {
+    viewMode = mode;
+    
+    // Update button styles
+    document.getElementById('viewWeekly').className = mode === 'weekly'
+        ? 'px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
+        : 'px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
+    document.getElementById('viewMonthly').className = mode === 'monthly'
+        ? 'px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
+        : 'px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
+    
+    // Show/hide week selector based on view mode
+    const weekSelector = document.getElementById('weekSelector');
+    if (weekSelector) {
+        weekSelector.style.display = mode === 'weekly' ? 'block' : 'none';
+    }
     
     renderSchedule();
 }
@@ -109,14 +135,35 @@ function renderSchedule() {
     // Get the weeks in the current month
     const weeksInMonth = getWeeksInMonth(currentYear, currentMonth);
 
+    // Update week dropdown options
+    const weekDropdown = document.getElementById('weekDropdown');
+    if (weekDropdown) {
+        weekDropdown.innerHTML = '';
+        weeksInMonth.forEach((_, index) => {
+            const option = document.createElement('option');
+            option.value = index + 1;
+            option.textContent = `Week ${index + 1}`;
+            if (index + 1 === currentWeek) {
+                option.selected = true;
+            }
+            weekDropdown.appendChild(option);
+        });
+    }
+
+    // Filter weeks based on view mode
+    const weeksToRender = viewMode === 'weekly' 
+        ? [weeksInMonth[currentWeek - 1]] 
+        : weeksInMonth;
+
     // Render each week as a horizontal grid
-    weeksInMonth.forEach((week, weekIndex) => {
+    weeksToRender.forEach((week, weekIndex) => {
+        const actualWeekIndex = viewMode === 'weekly' ? currentWeek - 1 : weekIndex;
         const weekContainer = document.createElement('div');
         weekContainer.className = 'mb-6';
 
         const weekLabel = document.createElement('h3');
         weekLabel.className = 'text-lg font-semibold text-gray-700 mb-2';
-        weekLabel.textContent = `Week ${weekIndex + 1}`;
+        weekLabel.textContent = `Week ${actualWeekIndex + 1}`;
         weekContainer.appendChild(weekLabel);
 
         // Create table container
