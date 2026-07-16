@@ -46,8 +46,8 @@ function selectSchool(school) {
         const button = document.getElementById(`school-${s}`);
         if (button) {
             button.className = s === school 
-                ? 'text-left px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
-                : 'text-left px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
+                ? 'px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
+                : 'px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
         }
     });
     
@@ -293,13 +293,9 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
         table.appendChild(headerRow);
 
         // Create rows for each time slot
-        let skipNextTimeSlot = false;
+        const activeRowspans = new Array(week.length).fill(0); // Track active rowspans for each day column
+        
         timeSlots.forEach((time, timeIndex) => {
-            if (skipNextTimeSlot) {
-                skipNextTimeSlot = false;
-                return; // Skip this time slot as it's merged with previous
-            }
-
             const row = document.createElement('tr');
             row.className = timeIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white';
 
@@ -311,11 +307,11 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
             row.appendChild(timeCell);
 
             // Day cells for this time
-            let skipNextDayCell = false;
             week.forEach((dayInfo, dayIndex) => {
-                if (skipNextDayCell) {
-                    skipNextDayCell = false;
-                    return; // Skip this day cell as it's merged with previous
+                // Decrease active rowspan counter for this column
+                if (activeRowspans[dayIndex] > 0) {
+                    activeRowspans[dayIndex]--;
+                    return; // Skip this cell as it's covered by a rowspan from previous row
                 }
 
                 const booking = findBookingForDate(dayInfo.date, time);
@@ -327,7 +323,7 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
                     if (booking.end_time === nextTime) {
                         // This is a 1-hour booking, merge with next time slot
                         slotCell.setAttribute('rowspan', '2');
-                        skipNextTimeSlot = true;
+                        activeRowspans[dayIndex] = 1; // Mark this column as having an active rowspan
                     }
                 }
                 
