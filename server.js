@@ -83,7 +83,7 @@ app.post('/api/unbook-instance', async (req, res) => {
 
 // API: Book a slot
 app.post('/api/book', async (req, res) => {
-  const { day, date, time, name, is_recurring, gender, school, year } = req.body;
+  const { day, date, time, name, is_recurring, gender, school, year, duration } = req.body;
   
   if (!day || !time || !name) {
     return res.status(400).json({ error: 'Missing required fields' });
