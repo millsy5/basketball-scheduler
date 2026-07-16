@@ -148,21 +148,44 @@ function renderSchedule() {
         table.appendChild(headerRow);
 
         // Create rows for each time slot
-        timeSlots.forEach(time => {
+        let skipNextTimeSlot = false;
+        timeSlots.forEach((time, timeIndex) => {
+            if (skipNextTimeSlot) {
+                skipNextTimeSlot = false;
+                return; // Skip this time slot as it's merged with previous
+            }
+
             const row = document.createElement('tr');
-            row.className = timeSlots.indexOf(time) % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+            row.className = timeIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white';
 
             // Time cell
             const timeCell = document.createElement('td');
             timeCell.className = 'px-4 py-2 font-semibold text-gray-700 sticky left-0';
-            timeCell.style.backgroundColor = timeSlots.indexOf(time) % 2 === 0 ? '#f9fafb' : '#ffffff';
+            timeCell.style.backgroundColor = timeIndex % 2 === 0 ? '#f9fafb' : '#ffffff';
             timeCell.textContent = time;
             row.appendChild(timeCell);
 
             // Day cells for this time
-            week.forEach(dayInfo => {
+            let skipNextDayCell = false;
+            week.forEach((dayInfo, dayIndex) => {
+                if (skipNextDayCell) {
+                    skipNextDayCell = false;
+                    return; // Skip this day cell as it's merged with previous
+                }
+
                 const booking = findBookingForDate(dayInfo.date, time);
                 const slotCell = createSlotCellForDate(dayInfo.day, dayInfo.date, time, booking, dayInfo.isCurrentMonth);
+                
+                // Check if this booking spans to the next time slot (1-hour booking)
+                if (booking && booking.end_time && timeIndex < timeSlots.length - 1) {
+                    const nextTime = timeSlots[timeIndex + 1];
+                    if (booking.end_time === nextTime) {
+                        // This is a 1-hour booking, merge with next time slot
+                        slotCell.setAttribute('rowspan', '2');
+                        skipNextTimeSlot = true;
+                    }
+                }
+                
                 row.appendChild(slotCell);
             });
 
@@ -242,39 +265,29 @@ function createSlotCellForDate(day, date, time, booking, isCurrentMonth) {
     cell.className = 'px-2 py-2 border border-gray-200 text-center';
 
     if (booking) {
-        // Check if this is the second half of a multi-slot booking
-        const isSecondHalf = booking.end_time === time;
-        
         // Booked slot in current month
         const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
         cell.className = `px-2 py-2 border border-gray-200 text-center ${bgColor}`;
         
-        if (isSecondHalf) {
-            // Second half of multi-slot booking - show as booked but no unbook button
-            cell.innerHTML = `
-                <div class="text-xs font-semibold text-gray-800 truncate">${booking.name} (continued)${booking.is_recurring ? ' ♻️' : ''}</div>
-            `;
-        } else {
-            // First half or single slot booking - show with unbook button
-            cell.innerHTML = `
-                <div class="text-xs font-semibold text-gray-800 truncate">${booking.name}${booking.is_recurring ? ' ♻️' : ''}</div>
-                <button 
-                    class="mt-1 text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition"
-                    title="Unbook this slot"
-                    data-day="${day}"
-                    data-date="${date}"
-                    data-time="${time}"
-                    data-is-recurring="${booking.is_recurring}"
-                >
-                    Unbook
-                </button>
-            `;
-            const button = cell.querySelector('button');
-            button.addEventListener('click', () => {
-                console.log('Unbook button clicked', { day, date, time, isRecurring: booking.is_recurring });
-                unbookSlot(day, date, time, booking.is_recurring);
-            });
-        }
+        // Show booking with unbook button (merged cells handled by rowspan in renderSchedule)
+        cell.innerHTML = `
+            <div class="text-xs font-semibold text-gray-800 truncate">${booking.name}${booking.is_recurring ? ' ♻️' : ''}</div>
+            <button 
+                class="mt-1 text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition"
+                title="Unbook this slot"
+                data-day="${day}"
+                data-date="${date}"
+                data-time="${time}"
+                data-is-recurring="${booking.is_recurring}"
+            >
+                Unbook
+            </button>
+        `;
+        const button = cell.querySelector('button');
+        button.addEventListener('click', () => {
+            console.log('Unbook button clicked', { day, date, time, isRecurring: booking.is_recurring });
+            unbookSlot(day, date, time, booking.is_recurring);
+        });
     } else {
         // Free slot in current month
         cell.className = 'px-2 py-2 border border-gray-200 text-center cursor-pointer hover:bg-red-50 transition';
@@ -312,18 +325,6 @@ function findBookingForDate(date, time) {
         return oneTimeBooking;
     }
 
-    // Check if this slot is part of a multi-slot booking (the second half of a 1-hour booking)
-    const multiSlotBooking = bookings.find(b => 
-        !b.is_recurring && 
-        b.date === date && 
-        b.end_time === time &&
-        b.school === currentSchool &&
-        b.year === currentYear
-    );
-    if (multiSlotBooking) {
-        return multiSlotBooking;
-    }
-
     // Then, check for recurring bookings that match this day of week
     const dayOfWeek = new Date(date).getDay();
     // getDay() returns 0 for Sunday, 1 for Monday, etc.
@@ -345,23 +346,6 @@ function findBookingForDate(date, time) {
             return null; // This instance is unbooked
         }
         return recurringBooking;
-    }
-
-    // Check if this slot is part of a multi-slot recurring booking
-    const recurringMultiSlot = bookings.find(b => 
-        b.is_recurring && 
-        b.day === dayName && 
-        b.end_time === time &&
-        b.school === currentSchool &&
-        b.year === currentYear
-    );
-    
-    if (recurringMultiSlot) {
-        // Check if this specific date is in the exceptions
-        if (recurringMultiSlot.exceptions && recurringMultiSlot.exceptions.includes(date)) {
-            return null; // This instance is unbooked
-        }
-        return recurringMultiSlot;
     }
 
     return null;
