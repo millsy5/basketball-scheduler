@@ -329,11 +329,16 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
 
         // Create table container
         const tableContainer = document.createElement('div');
-        tableContainer.className = 'bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto max-h-[600px] overflow-y-auto';
+        tableContainer.className = 'bg-white rounded-xl shadow-md overflow-hidden overflow-x-auto';
+        tableContainer.style.maxHeight = '600px';
+        tableContainer.style.overflowY = 'auto';
 
         // Create table
         const table = document.createElement('table');
-        table.className = 'w-full border-collapse border-spacing-0';
+        table.className = 'w-full border-collapse';
+
+        // Create thead with sticky positioning
+        const thead = document.createElement('thead');
 
         // Create header row with days and dates
         const headerRow = document.createElement('tr');
@@ -341,19 +346,32 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
 
         // Time column header
         const timeHeader = document.createElement('th');
-        timeHeader.className = 'px-4 py-3 text-left font-bold sticky left-0 top-0 bg-red-800 z-20';
+        timeHeader.className = 'px-4 py-3 text-left font-bold';
+        timeHeader.style.position = 'sticky';
+        timeHeader.style.left = '0';
+        timeHeader.style.top = '0';
+        timeHeader.style.backgroundColor = '#991b1b';
+        timeHeader.style.zIndex = '20';
         timeHeader.textContent = 'Time';
         headerRow.appendChild(timeHeader);
 
         // Day headers with dates
         week.forEach(dayInfo => {
             const dayHeader = document.createElement('th');
-            dayHeader.className = `px-4 py-3 text-center font-bold min-w-[100px] sticky top-0 ${dayInfo.isCurrentMonth ? '' : 'bg-gray-400'}`;
+            dayHeader.className = 'px-4 py-3 text-center font-bold min-w-[100px]';
+            dayHeader.style.position = 'sticky';
+            dayHeader.style.top = '0';
+            dayHeader.style.backgroundColor = dayInfo.isCurrentMonth ? '#dc2626' : '#9ca3af';
+            dayHeader.style.zIndex = '10';
             dayHeader.innerHTML = `${dayInfo.day}<br><span class="text-xs">${dayInfo.date}</span>`;
             headerRow.appendChild(dayHeader);
         });
 
-        table.appendChild(headerRow);
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create tbody for scrollable content
+        const tbody = document.createElement('tbody');
 
         // Create rows for each time slot
         const activeRowspans = new Array(week.length).fill(0); // Track active rowspans for each day column
@@ -393,8 +411,10 @@ function renderWeeklyView(scheduleContainer, weeksInMonth) {
                 row.appendChild(slotCell);
             });
 
-            table.appendChild(row);
+            tbody.appendChild(row);
         });
+
+        table.appendChild(tbody);
 
         tableContainer.appendChild(table);
         weekContainer.appendChild(tableContainer);
