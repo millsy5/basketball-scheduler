@@ -18,7 +18,7 @@ let currentYear = 2026;
 let currentMonth = new Date().getMonth(); // Current month
 let currentSchool = 'Colaiste Choilm';
 let currentWeek = 1; // Current week (1-based)
-let viewMode = 'weekly'; // 'weekly' or 'monthly'
+let viewMode = 'monthly'; // 'weekly' or 'monthly'
 let pendingUnbook = null; // Track pending unbooking operation
 let isAuthenticated = false; // Track authentication state
 
