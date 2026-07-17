@@ -113,7 +113,7 @@ function checkAuthentication() {
 }
 
 // Login function
-function login() {
+async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     
@@ -124,7 +124,7 @@ function login() {
         document.getElementById('mainContent').classList.remove('hidden');
         
         // Load data after successful login
-        loadBookings();
+        await loadBookings();
         renderMonthNavigation();
         
         // Set dropdown to match currentSchool
