@@ -200,6 +200,8 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const calendarGrid = document.createElement('div');
     calendarGrid.className = 'bg-white rounded-xl shadow-md p-4';
     calendarGrid.id = 'calendarGrid';
+    calendarGrid.style.width = '100%';
+    calendarGrid.style.maxWidth = '100%';
     
     // Add transition for month changes
     calendarGrid.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
@@ -234,7 +236,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
     // Create day headers
     const dayHeaders = document.createElement('div');
-    dayHeaders.className = 'grid grid-cols-7 gap-1 mb-2';
+    dayHeaders.className = 'grid grid-cols-7 gap-1 mb-2 w-full';
     days.forEach(day => {
         const dayHeader = document.createElement('div');
         dayHeader.className = 'text-center font-bold text-gray-700 py-2 text-xs';
@@ -245,7 +247,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
     // Create calendar cells
     const calendarCells = document.createElement('div');
-    calendarCells.className = 'grid grid-cols-7 gap-1';
+    calendarCells.className = 'grid grid-cols-7 gap-1 w-full';
 
     // Get all dates in the month
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -778,6 +780,12 @@ window.openBookingModalFromDayDetail = openBookingModalFromDayDetail;
 window.openBookingModal = openBookingModal;
 window.closeModal = closeModal;
 window.confirmBooking = confirmBooking;
+window.unbookSlot = unbookSlot;
+window.selectSchool = selectSchool;
+window.openUnbookModal = openUnbookModal;
+window.closeUnbookModal = closeUnbookModal;
+window.unbookSingleInstanceChoice = unbookSingleInstanceChoice;
+window.unbookRecurringChoice = unbookRecurringChoice;
 
 // Unbook a one-time booking
 async function unbookOneTimeBooking(day, date, time) {
