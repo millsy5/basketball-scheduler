@@ -14,27 +14,40 @@ const months = [
 
 let bookings = [];
 let selectedSlot = null;
-let currentYear = 2026;
+let currentYear = new Date().getFullYear(); // Current year
 let currentMonth = new Date().getMonth(); // Current month
 let currentSchool = 'Colaiste Choilm';
-let currentWeek = 1; // Current week (1-based)
-let viewMode = 'monthly'; // 'weekly' or 'monthly'
-let pendingUnbook = null; // Track pending unbooking operation
+let selectedDay = null; // Track selected day for detail view
 let isAuthenticated = false; // Track authentication state
 
-// Select year
-function selectYear(year) {
-    currentYear = year;
-    
-    // Update button styles
-    document.getElementById('year2026').className = year === 2026 
-        ? 'text-xl font-bold text-white bg-red-600 px-4 py-2 rounded-lg' 
-        : 'text-xl font-bold text-white bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600';
-    document.getElementById('year2027').className = year === 2027 
-        ? 'text-xl font-bold text-white bg-red-600 px-4 py-2 rounded-lg' 
-        : 'text-xl font-bold text-white bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600';
-    
+// Navigate to previous month
+function previousMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    updateMonthYearDisplay();
     renderSchedule();
+}
+
+// Navigate to next month
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    updateMonthYearDisplay();
+    renderSchedule();
+}
+
+// Update month/year display
+function updateMonthYearDisplay() {
+    const display = document.getElementById('currentMonthYear');
+    if (display) {
+        display.textContent = `${months[currentMonth]} ${currentYear}`;
+    }
 }
 
 // Select school
@@ -50,32 +63,6 @@ function selectSchool(school) {
     renderSchedule();
 }
 
-// Select week
-function selectWeek(week) {
-    currentWeek = parseInt(week);
-    renderSchedule();
-}
-
-// Toggle view mode
-function setViewMode(mode) {
-    viewMode = mode;
-    
-    // Update button styles
-    document.getElementById('viewWeekly').className = mode === 'weekly'
-        ? 'px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
-        : 'px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
-    document.getElementById('viewMonthly').className = mode === 'monthly'
-        ? 'px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-semibold'
-        : 'px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition';
-    
-    // Show/hide week selector based on view mode
-    const weekSelector = document.getElementById('weekSelector');
-    if (weekSelector) {
-        weekSelector.style.display = mode === 'weekly' ? 'flex' : 'none';
-    }
-    
-    renderSchedule();
-}
 
 // Initialize the app
 async function init() {
@@ -87,7 +74,7 @@ async function init() {
     }
     
     await loadBookings();
-    renderMonthNavigation();
+    updateMonthYearDisplay();
     
     // Set dropdown to match currentSchool
     const schoolDropdown = document.getElementById('schoolDropdown');
@@ -125,7 +112,7 @@ async function login() {
         
         // Load data after successful login
         await loadBookings();
-        renderMonthNavigation();
+        updateMonthYearDisplay();
         
         // Set dropdown to match currentSchool
         const schoolDropdown = document.getElementById('schoolDropdown');
@@ -151,27 +138,6 @@ function logout() {
     document.getElementById('loginPassword').value = '';
 }
 
-// Render month navigation sidebar
-function renderMonthNavigation() {
-    const navContainer = document.getElementById('monthNavigation');
-    navContainer.innerHTML = '';
-
-    months.forEach((month, index) => {
-        const button = document.createElement('button');
-        button.className = `w-full text-left px-4 py-2 rounded-lg transition ${
-            index === currentMonth 
-                ? 'bg-red-600 text-white font-semibold' 
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-        }`;
-        button.textContent = month;
-        button.onclick = () => {
-            currentMonth = index;
-            renderMonthNavigation();
-            renderSchedule();
-        };
-        navContainer.appendChild(button);
-    });
-}
 
 // Load bookings from the server
 async function loadBookings() {
@@ -189,36 +155,11 @@ function renderSchedule() {
     const scheduleContainer = document.getElementById('schedule');
     scheduleContainer.innerHTML = '';
 
-    // Create month header
-    const monthHeader = document.createElement('h2');
-    monthHeader.className = 'text-2xl font-bold text-red-600 mb-4 text-center';
-    monthHeader.textContent = `${months[currentMonth]} ${currentYear}`;
-    scheduleContainer.appendChild(monthHeader);
-
     // Get the weeks in the current month
     const weeksInMonth = getWeeksInMonth(currentYear, currentMonth);
 
-    // Update week dropdown options
-    const weekDropdown = document.getElementById('weekDropdown');
-    if (weekDropdown) {
-        weekDropdown.innerHTML = '';
-        weeksInMonth.forEach((_, index) => {
-            const option = document.createElement('option');
-            option.value = index + 1;
-            option.textContent = `Week ${index + 1}`;
-            if (index + 1 === currentWeek) {
-                option.selected = true;
-            }
-            weekDropdown.appendChild(option);
-        });
-    }
-
-    // Render based on view mode
-    if (viewMode === 'monthly') {
-        renderMonthlyView(scheduleContainer, weeksInMonth);
-    } else {
-        renderWeeklyView(scheduleContainer, weeksInMonth);
-    }
+    // Render monthly view
+    renderMonthlyView(scheduleContainer, weeksInMonth);
 }
 
 // Render monthly view (calendar grid)
@@ -226,6 +167,34 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     // Create calendar grid
     const calendarGrid = document.createElement('div');
     calendarGrid.className = 'bg-white rounded-xl shadow-md p-4';
+    
+    // Add touch event listeners for swipe navigation
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    calendarGrid.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    calendarGrid.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                // Swipe left - next month
+                nextMonth();
+            } else {
+                // Swipe right - previous month
+                previousMonth();
+            }
+        }
+    }
 
     // Create day headers
     const dayHeaders = document.createElement('div');
@@ -265,7 +234,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
         const cell = document.createElement('div');
         cell.className = 'border border-gray-200 rounded-lg p-2 min-h-[100px] bg-white hover:bg-gray-50 cursor-pointer';
-        cell.onclick = () => openBookingModal(dayName, dateString, '9:00 AM');
+        cell.onclick = () => openDayDetailModal(dayName, dateString, day);
 
         // Day number
         const dayNumber = document.createElement('div');
@@ -299,7 +268,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
             const bookingEl = document.createElement('div');
             const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
             bookingEl.className = `text-xs p-1 rounded ${bgColor} truncate`;
-            bookingEl.textContent = `${booking.time} - ${booking.name}`;
+            bookingEl.textContent = `${booking.time} - ${booking.name.substring(0, 10)}`;
             bookingsContainer.appendChild(bookingEl);
         });
 
@@ -309,118 +278,6 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
     calendarGrid.appendChild(calendarCells);
     scheduleContainer.appendChild(calendarGrid);
-}
-
-// Render weekly view (time slot grid)
-function renderWeeklyView(scheduleContainer, weeksInMonth) {
-    // Filter weeks based on view mode
-    const weeksToRender = [weeksInMonth[currentWeek - 1]];
-
-    // Render each week as a horizontal grid
-    weeksToRender.forEach((week, weekIndex) => {
-        const actualWeekIndex = currentWeek - 1;
-        const weekContainer = document.createElement('div');
-        weekContainer.className = 'mb-6';
-
-        const weekLabel = document.createElement('h3');
-        weekLabel.className = 'text-lg font-semibold text-gray-700 mb-2';
-        weekLabel.textContent = `Week ${actualWeekIndex + 1}`;
-        weekContainer.appendChild(weekLabel);
-
-        // Create table container
-        const tableContainer = document.createElement('div');
-        tableContainer.className = 'bg-white rounded-xl shadow-md overflow-hidden';
-
-        // Create separate header table (fixed)
-        const headerTable = document.createElement('table');
-        headerTable.className = 'w-full border-collapse';
-        headerTable.style.tableLayout = 'fixed';
-
-        const headerRow = document.createElement('tr');
-        headerRow.className = 'bg-gradient-to-r from-red-700 to-red-900 text-white';
-
-        // Time column header
-        const timeHeader = document.createElement('th');
-        timeHeader.className = 'px-4 py-3 text-left font-bold';
-        timeHeader.style.width = '100px';
-        timeHeader.style.backgroundColor = '#991b1b';
-        timeHeader.textContent = 'Time';
-        headerRow.appendChild(timeHeader);
-
-        // Day headers with dates
-        week.forEach(dayInfo => {
-            const dayHeader = document.createElement('th');
-            dayHeader.className = 'px-4 py-3 text-center font-bold';
-            dayHeader.style.backgroundColor = dayInfo.isCurrentMonth ? '#dc2626' : '#9ca3af';
-            dayHeader.innerHTML = `${dayInfo.day}<br><span class="text-xs">${dayInfo.date}</span>`;
-            headerRow.appendChild(dayHeader);
-        });
-
-        headerTable.appendChild(headerRow);
-        tableContainer.appendChild(headerTable);
-
-        // Create scrollable body container
-        const bodyContainer = document.createElement('div');
-        bodyContainer.className = 'overflow-x-auto';
-        bodyContainer.style.maxHeight = '600px';
-        bodyContainer.style.overflowY = 'auto';
-
-        // Create body table
-        const table = document.createElement('table');
-        table.className = 'w-full border-collapse';
-        table.style.tableLayout = 'fixed';
-
-        // Create tbody for scrollable content
-        const tbody = document.createElement('tbody');
-
-        // Create rows for each time slot
-        const activeRowspans = new Array(week.length).fill(0); // Track active rowspans for each day column
-        
-        timeSlots.forEach((time, timeIndex) => {
-            const row = document.createElement('tr');
-            row.className = timeIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-
-            // Time cell
-            const timeCell = document.createElement('td');
-            timeCell.className = 'px-4 py-2 font-semibold text-gray-700';
-            timeCell.style.width = '100px';
-            timeCell.style.backgroundColor = timeIndex % 2 === 0 ? '#f9fafb' : '#ffffff';
-            timeCell.textContent = time;
-            row.appendChild(timeCell);
-
-            // Day cells for this time
-            week.forEach((dayInfo, dayIndex) => {
-                // Decrease active rowspan counter for this column
-                if (activeRowspans[dayIndex] > 0) {
-                    activeRowspans[dayIndex]--;
-                    return; // Skip this cell as it's covered by a rowspan from previous row
-                }
-
-                const booking = findBookingForDate(dayInfo.date, time);
-                const slotCell = createSlotCellForDate(dayInfo.day, dayInfo.date, time, booking, dayInfo.isCurrentMonth);
-                
-                // Check if this booking spans multiple time slots
-                if (booking && booking.end_time && booking.duration && timeIndex < timeSlots.length - 1) {
-                    const numberOfSlots = booking.duration / 30;
-                    if (numberOfSlots > 1) {
-                        // This is a multi-slot booking, merge cells
-                        slotCell.setAttribute('rowspan', numberOfSlots);
-                        activeRowspans[dayIndex] = numberOfSlots - 1; // Mark this column as having active rowspan
-                    }
-                }
-                
-                row.appendChild(slotCell);
-            });
-
-            tbody.appendChild(row);
-        });
-
-        table.appendChild(tbody);
-        bodyContainer.appendChild(table);
-        tableContainer.appendChild(bodyContainer);
-        weekContainer.appendChild(tableContainer);
-        scheduleContainer.appendChild(weekContainer);
-    });
 }
 
 // Get weeks in a month as arrays of day objects
@@ -806,6 +663,82 @@ async function unbookRecurringBooking(day, time) {
         showToast('Error unbooking recurring booking', 'error');
     }
 }
+
+// Open day detail modal
+function openDayDetailModal(dayName, dateString, day) {
+    selectedDay = { dayName, dateString, day };
+    
+    // Set modal title
+    const title = document.getElementById('dayDetailTitle');
+    title.textContent = `${dayName} ${dateString}`;
+    
+    // Get bookings for this day
+    const dayBookings = [];
+    
+    // Check one-time bookings
+    bookings.filter(b => 
+        b.date === dateString && 
+        b.school === currentSchool && 
+        b.year === currentYear
+    ).forEach(b => dayBookings.push(b));
+    
+    // Check recurring bookings
+    bookings.filter(b => 
+        b.is_recurring && 
+        b.day === dayName && 
+        b.school === currentSchool &&
+        (!b.exceptions || !b.exceptions.includes(dateString))
+    ).forEach(b => dayBookings.push(b));
+    
+    // Populate bookings list
+    const bookingsList = document.getElementById('dayBookingsList');
+    bookingsList.innerHTML = '';
+    
+    if (dayBookings.length === 0) {
+        bookingsList.innerHTML = '<p class="text-gray-500 text-center">No bookings for this day</p>';
+    } else {
+        dayBookings.forEach(booking => {
+            const bookingEl = document.createElement('div');
+            const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
+            bookingEl.className = `p-3 rounded ${bgColor} flex justify-between items-center`;
+            bookingEl.innerHTML = `
+                <div>
+                    <div class="font-semibold text-sm">${booking.time}</div>
+                    <div class="text-sm">${booking.name}</div>
+                    <div class="text-xs text-gray-600">${booking.gender} • ${booking.duration} min</div>
+                </div>
+                <button onclick="unbookSlot('${booking.day}', '${booking.date}', '${booking.time}', ${booking.is_recurring})" class="text-red-600 hover:text-red-800 text-sm">Unbook</button>
+            `;
+            bookingsList.appendChild(bookingEl);
+        });
+    }
+    
+    // Show modal
+    document.getElementById('dayDetailModal').classList.remove('hidden');
+    document.getElementById('dayDetailModal').classList.add('flex');
+}
+
+// Close day detail modal
+function closeDayDetailModal() {
+    document.getElementById('dayDetailModal').classList.add('hidden');
+    document.getElementById('dayDetailModal').classList.remove('flex');
+    selectedDay = null;
+}
+
+// Open booking modal from day detail
+function openBookingModalFromDayDetail() {
+    if (selectedDay) {
+        closeDayDetailModal();
+        openBookingModal(selectedDay.dayName, selectedDay.dateString, '9:00 AM');
+    }
+}
+
+// Make functions globally accessible for HTML onclick handlers
+window.previousMonth = previousMonth;
+window.nextMonth = nextMonth;
+window.openDayDetailModal = openDayDetailModal;
+window.closeDayDetailModal = closeDayDetailModal;
+window.openBookingModalFromDayDetail = openBookingModalFromDayDetail;
 
 // Unbook a one-time booking
 async function unbookOneTimeBooking(day, date, time) {
