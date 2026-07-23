@@ -205,12 +205,16 @@ app.post('/api/unbook', async (req, res) => {
 app.post('/api/send-notification', async (req, res) => {
   const { day, date, time, bookingName, recipientEmail } = req.body;
   
+  console.log('Send notification request:', { day, date, time, bookingName, recipientEmail });
+  
   if (!day || !time || !recipientEmail) {
     return res.status(400).json({ error: 'Missing required fields: day, time, or recipientEmail' });
   }
 
   try {
     const brevoApiKey = process.env.BREVO_API_KEY;
+    
+    console.log('Brevo API key present:', !!brevoApiKey);
     
     if (!brevoApiKey) {
       return res.status(500).json({ error: 'Brevo API key not configured' });
@@ -237,6 +241,8 @@ app.post('/api/send-notification', async (req, res) => {
       }
     };
 
+    console.log('Sending email to Brevo API...');
+    
     const response = await axios.post(
       'https://api.brevo.com/v3/smtp/email',
       emailData,
@@ -249,14 +255,18 @@ app.post('/api/send-notification', async (req, res) => {
       }
     );
 
+    console.log('Brevo API response status:', response.status);
+    console.log('Brevo API response data:', response.data);
+
     if (response.status === 201 || response.status === 200) {
       res.json({ success: true, message: 'Email sent successfully' });
     } else {
-      res.status(500).json({ error: 'Failed to send email' });
+      res.status(500).json({ error: 'Failed to send email', status: response.status });
     }
   } catch (error) {
     console.error('Error sending email notification:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to send email notification' });
+    console.error('Full error:', error);
+    res.status(500).json({ error: 'Failed to send email notification', details: error.response?.data || error.message });
   }
 });
 

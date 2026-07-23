@@ -961,7 +961,7 @@ function openBookingModalFromDayDetail() {
         console.log('Closing day detail modal');
         closeDayDetailModal();
         console.log('Opening booking modal with', dayName, dateString);
-        openBookingModal(dayName, dateString, '9:00 AM');
+        openBookingModal(dayName, dateString, '5:00 PM');
     } catch (error) {
         console.error('Error in openBookingModalFromDayDetail:', error);
         alert('Error opening booking modal: ' + error.message);
