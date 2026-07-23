@@ -255,6 +255,8 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const calendarCells = document.createElement('div');
     calendarCells.className = 'grid grid-cols-7 gap-1 w-full';
     calendarCells.style.minWidth = '0';
+    calendarCells.style.width = '100%';
+    calendarCells.style.maxWidth = '100%';
 
     // Get all dates in the month
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -281,6 +283,8 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
         cell.className = 'border border-gray-200 rounded-lg p-1 min-h-[80px] bg-white hover:bg-gray-50 cursor-pointer';
         cell.style.minWidth = '0';
         cell.style.overflow = 'hidden';
+        cell.style.width = '100%';
+        cell.style.maxWidth = '100%';
         cell.onclick = () => openDayDetailModal(dayName, dateString, day);
 
         // Day number
