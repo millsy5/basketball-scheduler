@@ -481,6 +481,7 @@ function findBookingForDate(date, time) {
 
 // Open the booking modal
 function openBookingModal(day, date, time) {
+    console.log('openBookingModal called', { day, date, time });
     selectedSlot = { day, date, time };
     
     // Always show time and duration dropdowns (only monthly view now)
@@ -508,9 +509,11 @@ function openBookingModal(day, date, time) {
     });
     
     document.getElementById('playerName').value = '';
-    document.getElementById('bookingModal').classList.remove('hidden');
-    document.getElementById('bookingModal').classList.add('flex');
+    const bookingModal = document.getElementById('bookingModal');
+    bookingModal.classList.remove('hidden');
+    bookingModal.classList.add('flex');
     document.getElementById('playerName').focus();
+    console.log('Booking modal opened');
 }
 
 // Close the modal
@@ -760,9 +763,12 @@ function closeDayDetailModal() {
 
 // Open booking modal from day detail
 function openBookingModalFromDayDetail() {
+    console.log('openBookingModalFromDayDetail called', selectedDay);
     if (selectedDay) {
         closeDayDetailModal();
         openBookingModal(selectedDay.dayName, selectedDay.dateString, '9:00 AM');
+    } else {
+        console.error('No selected day');
     }
 }
 
