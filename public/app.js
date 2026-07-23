@@ -503,6 +503,21 @@ function isTimeInBookingRange(time, bookingTime, duration) {
     return timeIndex >= bookingTimeIndex && timeIndex < bookingTimeIndex + slotsCovered;
 }
 
+// Calculate end time based on start time and duration
+function getEndTime(startTime, duration) {
+    const startIndex = timeSlots.indexOf(startTime);
+    if (startIndex === -1) return startTime;
+    
+    const slotsToAdvance = duration / 30;
+    const endIndex = startIndex + slotsToAdvance;
+    
+    if (endIndex < timeSlots.length) {
+        return timeSlots[endIndex];
+    }
+    
+    return startTime; // Return start time if we can't calculate end time
+}
+
 // Open the booking modal
 function openBookingModal(day, date, time) {
     console.log('openBookingModal called', { day, date, time });
@@ -811,9 +826,13 @@ function openDayDetailModal(dayName, dateString, day) {
             const bookingEl = document.createElement('div');
             const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
             bookingEl.className = `p-3 rounded ${bgColor} flex justify-between items-center`;
+            
+            const endTime = getEndTime(booking.time, booking.duration);
+            const timeRange = `${booking.time}-${endTime}`;
+            
             bookingEl.innerHTML = `
                 <div>
-                    <div class="font-semibold text-sm">${booking.time}</div>
+                    <div class="font-semibold text-sm">${timeRange}</div>
                     <div class="text-sm">${booking.name}</div>
                     <div class="text-xs text-gray-600">${booking.gender} • ${booking.duration} min</div>
                 </div>
