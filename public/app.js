@@ -198,12 +198,14 @@ function renderSchedule() {
 function renderMonthlyView(scheduleContainer, weeksInMonth) {
     // Create calendar grid
     const calendarGrid = document.createElement('div');
-    calendarGrid.className = 'bg-white rounded-xl shadow-md p-4';
+    calendarGrid.className = 'bg-white rounded-xl shadow-md p-2';
     calendarGrid.id = 'calendarGrid';
     calendarGrid.style.width = '100%';
     calendarGrid.style.maxWidth = '100%';
     calendarGrid.style.overflow = 'hidden';
     calendarGrid.style.overflowX = 'hidden';
+    calendarGrid.style.height = '100%';
+    calendarGrid.style.maxHeight = '100%';
     
     // Add transition for month changes
     calendarGrid.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
@@ -269,7 +271,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const adjustedStartDay = (startDayOfWeek + 6) % 7;
     for (let i = 0; i < adjustedStartDay; i++) {
         const emptyCell = document.createElement('div');
-        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[80px]';
+        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[60px]';
         calendarCells.appendChild(emptyCell);
     }
 
@@ -280,7 +282,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
         const dayName = days[(dayOfWeek + 6) % 7];
 
         const cell = document.createElement('div');
-        cell.className = 'border border-gray-200 rounded-lg p-1 min-h-[80px] bg-white hover:bg-gray-50 cursor-pointer';
+        cell.className = 'border border-gray-200 rounded-lg p-1 min-h-[60px] bg-white hover:bg-gray-50 cursor-pointer';
         cell.style.minWidth = '0';
         cell.style.overflow = 'hidden';
         cell.style.width = '100%';
@@ -313,7 +315,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
         // Bookings container with scrollbar
         const bookingsContainer = document.createElement('div');
-        bookingsContainer.className = 'space-y-1 max-h-[60px] overflow-y-auto';
+        bookingsContainer.className = 'space-y-1 max-h-[40px] overflow-y-auto';
         
         dayBookings.forEach(booking => {
             const bookingEl = document.createElement('div');
@@ -768,11 +770,19 @@ function closeDayDetailModal() {
 // Open booking modal from day detail
 function openBookingModalFromDayDetail() {
     console.log('openBookingModalFromDayDetail called', selectedDay);
-    if (selectedDay) {
-        closeDayDetailModal();
-        openBookingModal(selectedDay.dayName, selectedDay.dateString, '9:00 AM');
-    } else {
-        console.error('No selected day');
+    try {
+        if (selectedDay) {
+            console.log('Closing day detail modal');
+            closeDayDetailModal();
+            console.log('Opening booking modal with', selectedDay.dayName, selectedDay.dateString);
+            openBookingModal(selectedDay.dayName, selectedDay.dateString, '9:00 AM');
+        } else {
+            console.error('No selected day');
+            alert('Error: No day selected. Please try clicking on a day again.');
+        }
+    } catch (error) {
+        console.error('Error in openBookingModalFromDayDetail:', error);
+        alert('Error opening booking modal: ' + error.message);
     }
 }
 
