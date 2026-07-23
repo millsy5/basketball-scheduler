@@ -456,9 +456,9 @@ function findBookingForDate(date, time) {
     const oneTimeBooking = bookings.find(b => 
         !b.is_recurring && 
         b.date === date && 
-        b.time === time &&
         b.school === currentSchool &&
-        b.year === currentYear
+        b.year === currentYear &&
+        isTimeInBookingRange(time, b.time, b.duration)
     );
     if (oneTimeBooking) {
         return oneTimeBooking;
@@ -474,8 +474,8 @@ function findBookingForDate(date, time) {
     const recurringBooking = bookings.find(b => 
         b.is_recurring && 
         b.day === dayName && 
-        b.time === time &&
-        b.school === currentSchool
+        b.school === currentSchool &&
+        isTimeInBookingRange(time, b.time, b.duration)
     );
     
     if (recurringBooking) {
@@ -487,6 +487,20 @@ function findBookingForDate(date, time) {
     }
 
     return null;
+}
+
+// Check if a time slot falls within a booking's duration range
+function isTimeInBookingRange(time, bookingTime, duration) {
+    const timeIndex = timeSlots.indexOf(time);
+    const bookingTimeIndex = timeSlots.indexOf(bookingTime);
+    
+    if (timeIndex === -1 || bookingTimeIndex === -1) return false;
+    
+    // Calculate how many 30-minute slots the booking covers
+    const slotsCovered = Math.ceil(duration / 30);
+    
+    // Check if the requested time is within the booking's range
+    return timeIndex >= bookingTimeIndex && timeIndex < bookingTimeIndex + slotsCovered;
 }
 
 // Open the booking modal
@@ -638,21 +652,25 @@ async function unbookSlot(day, date, time, isRecurring) {
     console.log('unbookSlot called', { day, date, time, isRecurring });
     
     if (isRecurring) {
-        // For recurring bookings, ask if they want to unbook just this instance or all
-        const choice = confirm(
-            `This is a recurring booking.\n\nClick OK to unbook ONLY this instance (${day} ${date} at ${time}).\nClick Cancel to unbook ALL recurring bookings.`
+        // For recurring bookings, ask what they want to do
+        const choice = prompt(
+            `This is a recurring booking for ${day} at ${time}.\n\nEnter '1' to unbook ONLY this instance (${date})\nEnter '2' to unbook ALL recurring bookings\nEnter anything else to cancel`
         );
         
-        if (choice) {
+        if (choice === '1') {
             // Unbook single instance
             console.log('Unbooking single instance of recurring booking');
             await unbookSingleInstance(day, date, time);
-        } else {
+        } else if (choice === '2') {
             // Unbook entire recurring booking
             if (confirm(`Are you sure you want to unbook ALL recurring bookings for ${day} at ${time}?`)) {
                 console.log('Unbooking entire recurring booking');
                 await unbookRecurringBooking(day, time);
             }
+        } else {
+            // Cancel
+            console.log('Unbooking cancelled');
+            return;
         }
     } else {
         // For one-time bookings, just use a simple confirm dialog
