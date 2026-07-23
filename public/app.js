@@ -718,6 +718,10 @@ async function unbookSingleInstance(day, date, time) {
             showToast('Single instance unbooked successfully', 'success');
             await loadBookings();
             renderSchedule();
+            // Refresh day detail modal if it's open
+            if (selectedDay) {
+                openDayDetailModal(selectedDay.dayName, selectedDay.dateString, selectedDay.day);
+            }
         } else {
             showToast(data.error || 'Unbooking failed', 'error');
         }
@@ -749,6 +753,10 @@ async function unbookRecurringBooking(day, time) {
             showToast('Recurring booking removed successfully', 'success');
             await loadBookings();
             renderSchedule();
+            // Refresh day detail modal if it's open
+            if (selectedDay) {
+                openDayDetailModal(selectedDay.dayName, selectedDay.dateString, selectedDay.day);
+            }
         } else {
             showToast(data.error || 'Unbooking failed', 'error');
         }
@@ -892,6 +900,10 @@ async function unbookOneTimeBooking(day, date, time) {
             showToast('Slot unbooked successfully', 'success');
             await loadBookings();
             renderSchedule();
+            // Refresh day detail modal if it's open
+            if (selectedDay) {
+                openDayDetailModal(selectedDay.dayName, selectedDay.dateString, selectedDay.day);
+            }
         } else {
             showToast(data.error || 'Unbooking failed', 'error');
         }
