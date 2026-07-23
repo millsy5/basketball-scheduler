@@ -654,7 +654,9 @@ async function unbookSlot(day, date, time, isRecurring) {
     if (isRecurring) {
         // For recurring bookings, show the options modal
         pendingUnbook = { day, date, time };
-        document.getElementById('unbookOptionsInfo').textContent = `${day} (${date}) at ${time}`;
+        // Use selectedDay's dateString if date is null (for recurring bookings viewed from day detail)
+        const displayDate = date || (selectedDay ? selectedDay.dateString : 'recurring');
+        document.getElementById('unbookOptionsInfo').textContent = `${day} at ${time}`;
         document.getElementById('unbookOptionsModal').classList.remove('hidden');
         document.getElementById('unbookOptionsModal').classList.add('flex');
     } else {
