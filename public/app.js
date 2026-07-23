@@ -663,12 +663,12 @@ async function confirmBooking() {
 }
 
 // Unbook a slot
-async function unbookSlot(day, date, time, isRecurring) {
-    console.log('unbookSlot called', { day, date, time, isRecurring });
+async function unbookSlot(day, date, time, isRecurring, bookingName = null) {
+    console.log('unbookSlot called', { day, date, time, isRecurring, bookingName });
     
     if (isRecurring) {
         // For recurring bookings, show the options modal
-        pendingUnbook = { day, date, time };
+        pendingUnbook = { day, date, time, bookingName };
         // Use selectedDay's dateString if date is null (for recurring bookings viewed from day detail)
         const displayDate = date || (selectedDay ? selectedDay.dateString : 'recurring');
         document.getElementById('unbookOptionsInfo').textContent = `${day} at ${time}`;
@@ -680,7 +680,7 @@ async function unbookSlot(day, date, time, isRecurring) {
             return;
         }
         console.log('Unbooking one-time booking');
-        await unbookOneTimeBooking(day, date, time);
+        await unbookOneTimeBooking(day, date, time, bookingName);
     }
 }
 
@@ -708,16 +708,16 @@ async function confirmUnbookOption() {
     if (selectedOption === 'single') {
         // Unbook single instance
         console.log('Unbooking single instance of recurring booking');
-        await unbookSingleInstance(unbookInfo.day, unbookInfo.date, unbookInfo.time);
+        await unbookSingleInstance(unbookInfo.day, unbookInfo.date, unbookInfo.time, unbookInfo.bookingName);
     } else if (selectedOption === 'recurring') {
         // Unbook entire recurring booking
         console.log('Unbooking entire recurring booking');
-        await unbookRecurringBooking(unbookInfo.day, unbookInfo.time);
+        await unbookRecurringBooking(unbookInfo.day, unbookInfo.time, unbookInfo.bookingName);
     }
 }
 
 // Unbook a single instance of a recurring booking
-async function unbookSingleInstance(day, date, time) {
+async function unbookSingleInstance(day, date, time, bookingName = null) {
     try {
         const response = await fetch('/api/unbook-instance', {
             method: 'POST',
@@ -743,6 +743,10 @@ async function unbookSingleInstance(day, date, time) {
             if (selectedDay) {
                 openDayDetailModal(selectedDay.dayName, selectedDay.dateString, selectedDay.day);
             }
+            // Open notification modal with booking details
+            if (bookingName) {
+                openNotificationModal({ day, date, time, name: bookingName });
+            }
         } else {
             showToast(data.error || 'Unbooking failed', 'error');
         }
@@ -753,7 +757,7 @@ async function unbookSingleInstance(day, date, time) {
 }
 
 // Remove entire recurring booking
-async function unbookRecurringBooking(day, time) {
+async function unbookRecurringBooking(day, time, bookingName = null) {
     try {
         const response = await fetch('/api/unbook', {
             method: 'POST',
@@ -777,6 +781,10 @@ async function unbookRecurringBooking(day, time) {
             // Refresh day detail modal if it's open
             if (selectedDay) {
                 openDayDetailModal(selectedDay.dayName, selectedDay.dateString, selectedDay.day);
+            }
+            // Open notification modal with booking details
+            if (bookingName) {
+                openNotificationModal({ day, date: 'Recurring booking', time, name: bookingName });
             }
         } else {
             showToast(data.error || 'Unbooking failed', 'error');
@@ -836,7 +844,7 @@ function openDayDetailModal(dayName, dateString, day) {
                     <div class="text-sm">${booking.name}</div>
                     <div class="text-xs text-gray-600">${booking.gender} • ${booking.duration} min</div>
                 </div>
-                <button onclick="unbookSlot('${booking.day}', '${booking.date}', '${booking.time}', ${booking.is_recurring})" class="text-red-600 hover:text-red-800 text-sm">Unbook</button>
+                <button onclick="unbookSlot('${booking.day}', '${booking.date}', '${booking.time}', ${booking.is_recurring}, '${booking.name}')" class="text-red-600 hover:text-red-800 text-sm">Unbook</button>
             `;
             bookingsList.appendChild(bookingEl);
         });
@@ -854,8 +862,26 @@ function closeDayDetailModal() {
     // Don't set selectedDay to null - it might be needed by other functions
 }
 
+// Store pending notification details
+let pendingNotification = null;
+
 // Open notification modal
-function openNotificationModal() {
+function openNotificationModal(bookingDetails = null) {
+    pendingNotification = bookingDetails;
+    
+    // Populate notification details if available
+    if (bookingDetails) {
+        document.getElementById('notificationBookingName').textContent = bookingDetails.name || '-';
+        document.getElementById('notificationDay').textContent = bookingDetails.day || '-';
+        document.getElementById('notificationDate').textContent = bookingDetails.date || '-';
+        document.getElementById('notificationTime').textContent = bookingDetails.time || '-';
+    } else {
+        document.getElementById('notificationBookingName').textContent = '-';
+        document.getElementById('notificationDay').textContent = '-';
+        document.getElementById('notificationDate').textContent = '-';
+        document.getElementById('notificationTime').textContent = '-';
+    }
+    
     document.getElementById('notificationModal').classList.remove('hidden');
     document.getElementById('notificationModal').classList.add('flex');
     document.getElementById('notificationEmail').value = '';
@@ -877,8 +903,8 @@ async function sendNotification() {
         return;
     }
     
-    if (!selectedDay) {
-        alert('No day selected');
+    if (!pendingNotification) {
+        alert('No booking details available for notification');
         return;
     }
     
@@ -889,10 +915,10 @@ async function sendNotification() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                day: selectedDay.dayName,
-                date: selectedDay.dateString,
-                time: 'Various times',
-                bookingName: 'Booking cancellation',
+                day: pendingNotification.day,
+                date: pendingNotification.date,
+                time: pendingNotification.time,
+                bookingName: pendingNotification.name,
                 recipientEmail: recipientEmail
             })
         });
@@ -902,6 +928,7 @@ async function sendNotification() {
         if (response.ok) {
             showToast('Notification sent successfully', 'success');
             closeNotificationModal();
+            pendingNotification = null;
         } else {
             showToast(data.error || 'Failed to send notification', 'error');
         }
@@ -963,7 +990,7 @@ window.closeNotificationModal = closeNotificationModal;
 window.sendNotification = sendNotification;
 
 // Unbook a one-time booking
-async function unbookOneTimeBooking(day, date, time) {
+async function unbookOneTimeBooking(day, date, time, bookingName = null) {
     try {
         const response = await fetch('/api/unbook', {
             method: 'POST',
@@ -988,6 +1015,10 @@ async function unbookOneTimeBooking(day, date, time) {
             // Refresh day detail modal if it's open
             if (selectedDay) {
                 openDayDetailModal(selectedDay.dayName, selectedDay.dateString, selectedDay.day);
+            }
+            // Open notification modal with booking details
+            if (bookingName) {
+                openNotificationModal({ day, date, time, name: bookingName });
             }
         } else {
             showToast(data.error || 'Unbooking failed', 'error');

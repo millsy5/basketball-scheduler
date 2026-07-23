@@ -162,15 +162,9 @@
                 </div>
                 <button 
                     onclick="openBookingModalFromDayDetail()" 
-                    class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition mb-3"
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
                 >
                     + Add Booking
-                </button>
-                <button 
-                    onclick="openNotificationModal()" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-                >
-                    Send Notification
                 </button>
             </div>
         </div>
@@ -212,6 +206,12 @@
             <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Send Notification</h3>
                 <p class="text-gray-600 mb-4">Send an email notification about the booking cancellation.</p>
+                <div id="notificationDetails" class="bg-gray-100 p-3 rounded mb-4">
+                    <p class="text-sm"><strong>Booking:</strong> <span id="notificationBookingName">-</span></p>
+                    <p class="text-sm"><strong>Day:</strong> <span id="notificationDay">-</span></p>
+                    <p class="text-sm"><strong>Date:</strong> <span id="notificationDate">-</span></p>
+                    <p class="text-sm"><strong>Time:</strong> <span id="notificationTime">-</span></p>
+                </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 font-semibold mb-2">Recipient Email:</label>
                     <input 
