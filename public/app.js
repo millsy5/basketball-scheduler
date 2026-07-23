@@ -652,26 +652,11 @@ async function unbookSlot(day, date, time, isRecurring) {
     console.log('unbookSlot called', { day, date, time, isRecurring });
     
     if (isRecurring) {
-        // For recurring bookings, ask what they want to do
-        const choice = prompt(
-            `This is a recurring booking for ${day} at ${time}.\n\nEnter '1' to unbook ONLY this instance (${date})\nEnter '2' to unbook ALL recurring bookings\nEnter anything else to cancel`
-        );
-        
-        if (choice === '1') {
-            // Unbook single instance
-            console.log('Unbooking single instance of recurring booking');
-            await unbookSingleInstance(day, date, time);
-        } else if (choice === '2') {
-            // Unbook entire recurring booking
-            if (confirm(`Are you sure you want to unbook ALL recurring bookings for ${day} at ${time}?`)) {
-                console.log('Unbooking entire recurring booking');
-                await unbookRecurringBooking(day, time);
-            }
-        } else {
-            // Cancel
-            console.log('Unbooking cancelled');
-            return;
-        }
+        // For recurring bookings, show the options modal
+        pendingUnbook = { day, date, time };
+        document.getElementById('unbookOptionsInfo').textContent = `${day} (${date}) at ${time}`;
+        document.getElementById('unbookOptionsModal').classList.remove('hidden');
+        document.getElementById('unbookOptionsModal').classList.add('flex');
     } else {
         // For one-time bookings, just use a simple confirm dialog
         if (!confirm(`Are you sure you want to unbook ${day} (${date}) at ${time}?`)) {
@@ -679,6 +664,34 @@ async function unbookSlot(day, date, time, isRecurring) {
         }
         console.log('Unbooking one-time booking');
         await unbookOneTimeBooking(day, date, time);
+    }
+}
+
+// Close unbook options modal
+function closeUnbookOptionsModal() {
+    document.getElementById('unbookOptionsModal').classList.add('hidden');
+    document.getElementById('unbookOptionsModal').classList.remove('flex');
+    pendingUnbook = null;
+}
+
+// Confirm unbook option
+async function confirmUnbookOption() {
+    if (!pendingUnbook) return;
+    
+    const selectedOption = document.querySelector('input[name="unbookOption"]:checked').value;
+    
+    if (selectedOption === 'single') {
+        // Unbook single instance
+        console.log('Unbooking single instance of recurring booking');
+        closeUnbookOptionsModal();
+        await unbookSingleInstance(pendingUnbook.day, pendingUnbook.date, pendingUnbook.time);
+    } else if (selectedOption === 'recurring') {
+        // Unbook entire recurring booking
+        if (confirm(`Are you sure you want to unbook ALL recurring bookings for ${pendingUnbook.day} at ${pendingUnbook.time}?`)) {
+            console.log('Unbooking entire recurring booking');
+            closeUnbookOptionsModal();
+            await unbookRecurringBooking(pendingUnbook.day, pendingUnbook.time);
+        }
     }
 }
 
@@ -853,6 +866,8 @@ window.openUnbookModal = openUnbookModal;
 window.closeUnbookModal = closeUnbookModal;
 window.unbookSingleInstanceChoice = unbookSingleInstanceChoice;
 window.unbookRecurringChoice = unbookRecurringChoice;
+window.closeUnbookOptionsModal = closeUnbookOptionsModal;
+window.confirmUnbookOption = confirmUnbookOption;
 
 // Unbook a one-time booking
 async function unbookOneTimeBooking(day, date, time) {

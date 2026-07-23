@@ -169,6 +169,38 @@
             </div>
         </div>
 
+        <!-- Unbook Options Modal -->
+        <div id="unbookOptionsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Unbook Recurring Booking</h3>
+                <p id="unbookOptionsInfo" class="text-gray-600 mb-4"></p>
+                <div class="mb-4">
+                    <label class="flex items-center mb-2">
+                        <input type="radio" name="unbookOption" value="single" checked class="mr-2">
+                        <span class="text-gray-700">Unbook ONLY this instance</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="unbookOption" value="recurring" class="mr-2">
+                        <span class="text-gray-700">Unbook ALL recurring bookings</span>
+                    </label>
+                </div>
+                <div class="flex gap-3">
+                    <button 
+                        onclick="confirmUnbookOption()" 
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                    >
+                        OK
+                    </button>
+                    <button 
+                        onclick="closeUnbookOptionsModal()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg transition"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Toast Notification -->
         <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden transition">
             <p id="toastMessage"></p>
