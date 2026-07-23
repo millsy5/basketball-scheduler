@@ -255,10 +255,14 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
     // Create calendar cells
     const calendarCells = document.createElement('div');
-    calendarCells.className = 'grid grid-cols-7 gap-1 w-full';
+    calendarCells.className = 'grid grid-cols-7 gap-0 w-full';
     calendarCells.style.minWidth = '0';
     calendarCells.style.width = '100%';
     calendarCells.style.maxWidth = '100%';
+    calendarCells.style.flex = '1';
+    calendarCells.style.display = 'grid';
+    calendarCells.style.gridTemplateRows = 'repeat(auto-fill, minmax(1fr, 1fr))';
+    calendarCells.style.gridAutoRows = '1fr';
 
     // Get all dates in the month
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -271,7 +275,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const adjustedStartDay = (startDayOfWeek + 6) % 7;
     for (let i = 0; i < adjustedStartDay; i++) {
         const emptyCell = document.createElement('div');
-        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[100px]';
+        emptyCell.className = 'bg-gray-100 border border-gray-200 p-2';
         calendarCells.appendChild(emptyCell);
     }
 
@@ -282,7 +286,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
         const dayName = days[(dayOfWeek + 6) % 7];
 
         const cell = document.createElement('div');
-        cell.className = 'border border-gray-200 rounded-lg p-2 min-h-[100px] bg-white hover:bg-gray-50 cursor-pointer';
+        cell.className = 'border border-gray-200 p-2 bg-white hover:bg-gray-50 cursor-pointer';
         cell.style.minWidth = '0';
         cell.style.overflow = 'hidden';
         cell.style.width = '100%';
@@ -708,7 +712,9 @@ async function unbookRecurringBooking(day, time) {
 
 // Open day detail modal
 function openDayDetailModal(dayName, dateString, day) {
+    console.log('openDayDetailModal called with', { dayName, dateString, day });
     selectedDay = { dayName, dateString, day };
+    console.log('selectedDay set to', selectedDay);
     
     // Set modal title
     const title = document.getElementById('dayDetailTitle');
@@ -764,25 +770,33 @@ function openDayDetailModal(dayName, dateString, day) {
 function closeDayDetailModal() {
     document.getElementById('dayDetailModal').classList.add('hidden');
     document.getElementById('dayDetailModal').classList.remove('flex');
-    selectedDay = null;
+    // Don't set selectedDay to null - it might be needed by other functions
 }
 
 // Open booking modal from day detail
 function openBookingModalFromDayDetail() {
     console.log('openBookingModalFromDayDetail called', selectedDay);
     try {
-        if (selectedDay) {
-            // Store day info before closing modal
-            const dayName = selectedDay.dayName;
-            const dateString = selectedDay.dateString;
-            console.log('Closing day detail modal');
-            closeDayDetailModal();
-            console.log('Opening booking modal with', dayName, dateString);
-            openBookingModal(dayName, dateString, '9:00 AM');
-        } else {
+        if (!selectedDay) {
             console.error('No selected day');
             alert('Error: No day selected. Please try clicking on a day again.');
+            return;
         }
+        
+        // Store day info before closing modal
+        const dayName = selectedDay.dayName;
+        const dateString = selectedDay.dateString;
+        
+        if (!dayName || !dateString) {
+            console.error('Invalid day info', { dayName, dateString });
+            alert('Error: Invalid day information. Please try clicking on a day again.');
+            return;
+        }
+        
+        console.log('Closing day detail modal');
+        closeDayDetailModal();
+        console.log('Opening booking modal with', dayName, dateString);
+        openBookingModal(dayName, dateString, '9:00 AM');
     } catch (error) {
         console.error('Error in openBookingModalFromDayDetail:', error);
         alert('Error opening booking modal: ' + error.message);
