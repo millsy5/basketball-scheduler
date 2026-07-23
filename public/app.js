@@ -854,6 +854,63 @@ function closeDayDetailModal() {
     // Don't set selectedDay to null - it might be needed by other functions
 }
 
+// Open notification modal
+function openNotificationModal() {
+    document.getElementById('notificationModal').classList.remove('hidden');
+    document.getElementById('notificationModal').classList.add('flex');
+    document.getElementById('notificationEmail').value = '';
+    document.getElementById('notificationEmail').focus();
+}
+
+// Close notification modal
+function closeNotificationModal() {
+    document.getElementById('notificationModal').classList.add('hidden');
+    document.getElementById('notificationModal').classList.remove('flex');
+}
+
+// Send notification
+async function sendNotification() {
+    const recipientEmail = document.getElementById('notificationEmail').value;
+    
+    if (!recipientEmail) {
+        alert('Please enter a recipient email address');
+        return;
+    }
+    
+    if (!selectedDay) {
+        alert('No day selected');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                day: selectedDay.dayName,
+                date: selectedDay.dateString,
+                time: 'Various times',
+                bookingName: 'Booking cancellation',
+                recipientEmail: recipientEmail
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Notification sent successfully', 'success');
+            closeNotificationModal();
+        } else {
+            showToast(data.error || 'Failed to send notification', 'error');
+        }
+    } catch (error) {
+        console.error('Error sending notification:', error);
+        showToast('Error sending notification', 'error');
+    }
+}
+
 // Open booking modal from day detail
 function openBookingModalFromDayDetail() {
     console.log('openBookingModalFromDayDetail called', selectedDay);
@@ -901,6 +958,9 @@ window.unbookSingleInstanceChoice = unbookSingleInstanceChoice;
 window.unbookRecurringChoice = unbookRecurringChoice;
 window.closeUnbookOptionsModal = closeUnbookOptionsModal;
 window.confirmUnbookOption = confirmUnbookOption;
+window.openNotificationModal = openNotificationModal;
+window.closeNotificationModal = closeNotificationModal;
+window.sendNotification = sendNotification;
 
 // Unbook a one-time booking
 async function unbookOneTimeBooking(day, date, time) {

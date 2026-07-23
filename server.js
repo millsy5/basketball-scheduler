@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -197,6 +198,65 @@ app.post('/api/unbook', async (req, res) => {
   } catch (error) {
     console.error('Error unbooking slot:', error);
     res.status(500).json({ error: 'Failed to unbook slot' });
+  }
+});
+
+// API: Send email notification using Brevo
+app.post('/api/send-notification', async (req, res) => {
+  const { day, date, time, bookingName, recipientEmail } = req.body;
+  
+  if (!day || !time || !recipientEmail) {
+    return res.status(400).json({ error: 'Missing required fields: day, time, or recipientEmail' });
+  }
+
+  try {
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    
+    if (!brevoApiKey) {
+      return res.status(500).json({ error: 'Brevo API key not configured' });
+    }
+
+    const emailData = {
+      to: [{ email: recipientEmail }],
+      subject: `Booking Cancelled: ${day} at ${time}`,
+      htmlContent: `
+        <h2>Booking Cancellation Notification</h2>
+        <p>A booking has been cancelled:</p>
+        <ul>
+          <li><strong>Day:</strong> ${day}</li>
+          <li><strong>Date:</strong> ${date || 'Recurring booking'}</li>
+          <li><strong>Time:</strong> ${time}</li>
+          <li><strong>Booking Name:</strong> ${bookingName || 'N/A'}</li>
+        </ul>
+        <p>This booking has been removed from the schedule.</p>
+        <p>Please contact the administrator if you have any questions.</p>
+      `,
+      sender: { 
+        name: 'Ballincollig Basketball Club',
+        email: 'noreply@ballincolligbasketball.ie'
+      }
+    };
+
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      emailData,
+      {
+        headers: {
+          'api-key': brevoApiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    if (response.status === 201 || response.status === 200) {
+      res.json({ success: true, message: 'Email sent successfully' });
+    } else {
+      res.status(500).json({ error: 'Failed to send email' });
+    }
+  } catch (error) {
+    console.error('Error sending email notification:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to send email notification' });
   }
 });
 
