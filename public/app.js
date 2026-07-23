@@ -689,11 +689,9 @@ async function confirmUnbookOption() {
         await unbookSingleInstance(pendingUnbook.day, pendingUnbook.date, pendingUnbook.time);
     } else if (selectedOption === 'recurring') {
         // Unbook entire recurring booking
-        if (confirm(`Are you sure you want to unbook ALL recurring bookings for ${pendingUnbook.day} at ${pendingUnbook.time}?`)) {
-            console.log('Unbooking entire recurring booking');
-            closeUnbookOptionsModal();
-            await unbookRecurringBooking(pendingUnbook.day, pendingUnbook.time);
-        }
+        console.log('Unbooking entire recurring booking');
+        closeUnbookOptionsModal();
+        await unbookRecurringBooking(pendingUnbook.day, pendingUnbook.time);
     }
 }
 
