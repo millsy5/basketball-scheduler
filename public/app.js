@@ -271,7 +271,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const adjustedStartDay = (startDayOfWeek + 6) % 7;
     for (let i = 0; i < adjustedStartDay; i++) {
         const emptyCell = document.createElement('div');
-        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[60px]';
+        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[100px]';
         calendarCells.appendChild(emptyCell);
     }
 
@@ -282,7 +282,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
         const dayName = days[(dayOfWeek + 6) % 7];
 
         const cell = document.createElement('div');
-        cell.className = 'border border-gray-200 rounded-lg p-1 min-h-[60px] bg-white hover:bg-gray-50 cursor-pointer';
+        cell.className = 'border border-gray-200 rounded-lg p-2 min-h-[100px] bg-white hover:bg-gray-50 cursor-pointer';
         cell.style.minWidth = '0';
         cell.style.overflow = 'hidden';
         cell.style.width = '100%';
@@ -315,7 +315,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
         // Bookings container with scrollbar
         const bookingsContainer = document.createElement('div');
-        bookingsContainer.className = 'space-y-1 max-h-[40px] overflow-y-auto';
+        bookingsContainer.className = 'space-y-1 max-h-[80px] overflow-y-auto';
         
         dayBookings.forEach(booking => {
             const bookingEl = document.createElement('div');
@@ -772,10 +772,13 @@ function openBookingModalFromDayDetail() {
     console.log('openBookingModalFromDayDetail called', selectedDay);
     try {
         if (selectedDay) {
+            // Store day info before closing modal
+            const dayName = selectedDay.dayName;
+            const dateString = selectedDay.dateString;
             console.log('Closing day detail modal');
             closeDayDetailModal();
-            console.log('Opening booking modal with', selectedDay.dayName, selectedDay.dateString);
-            openBookingModal(selectedDay.dayName, selectedDay.dateString, '9:00 AM');
+            console.log('Opening booking modal with', dayName, dateString);
+            openBookingModal(dayName, dateString, '9:00 AM');
         } else {
             console.error('No selected day');
             alert('Error: No day selected. Please try clicking on a day again.');
