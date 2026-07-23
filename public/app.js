@@ -635,14 +635,17 @@ async function confirmBooking() {
 
 // Unbook a slot
 async function unbookSlot(day, date, time, isRecurring) {
+    console.log('unbookSlot called', { day, date, time, isRecurring });
     if (isRecurring) {
         // For recurring bookings, show the custom unbooking options modal
+        console.log('Opening unbook modal for recurring booking');
         openUnbookModal(day, date, time);
     } else {
         // For one-time bookings, just use a simple confirm dialog
         if (!confirm(`Are you sure you want to unbook ${day} (${date}) at ${time}?`)) {
             return;
         }
+        console.log('Unbooking one-time booking');
         await unbookOneTimeBooking(day, date, time);
     }
 }
