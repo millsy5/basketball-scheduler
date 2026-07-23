@@ -22,24 +22,56 @@ let isAuthenticated = false; // Track authentication state
 
 // Navigate to previous month
 function previousMonth() {
-    currentMonth--;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
+    const calendarGrid = document.getElementById('calendarGrid');
+    if (calendarGrid) {
+        calendarGrid.style.opacity = '0';
+        calendarGrid.style.transform = 'translateX(20px)';
     }
-    updateMonthYearDisplay();
-    renderSchedule();
+    
+    setTimeout(() => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        updateMonthYearDisplay();
+        renderSchedule();
+        
+        setTimeout(() => {
+            const newGrid = document.getElementById('calendarGrid');
+            if (newGrid) {
+                newGrid.style.opacity = '1';
+                newGrid.style.transform = 'translateX(0)';
+            }
+        }, 50);
+    }, 150);
 }
 
 // Navigate to next month
 function nextMonth() {
-    currentMonth++;
-    if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
+    const calendarGrid = document.getElementById('calendarGrid');
+    if (calendarGrid) {
+        calendarGrid.style.opacity = '0';
+        calendarGrid.style.transform = 'translateX(-20px)';
     }
-    updateMonthYearDisplay();
-    renderSchedule();
+    
+    setTimeout(() => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        updateMonthYearDisplay();
+        renderSchedule();
+        
+        setTimeout(() => {
+            const newGrid = document.getElementById('calendarGrid');
+            if (newGrid) {
+                newGrid.style.opacity = '1';
+                newGrid.style.transform = 'translateX(0)';
+            }
+        }, 50);
+    }, 150);
 }
 
 // Update month/year display
@@ -167,6 +199,10 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     // Create calendar grid
     const calendarGrid = document.createElement('div');
     calendarGrid.className = 'bg-white rounded-xl shadow-md p-4';
+    calendarGrid.id = 'calendarGrid';
+    
+    // Add transition for month changes
+    calendarGrid.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
     
     // Add touch event listeners for swipe navigation
     let touchStartX = 0;
@@ -198,10 +234,10 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
     // Create day headers
     const dayHeaders = document.createElement('div');
-    dayHeaders.className = 'grid grid-cols-7 gap-2 mb-2';
+    dayHeaders.className = 'grid grid-cols-7 gap-1 mb-2';
     days.forEach(day => {
         const dayHeader = document.createElement('div');
-        dayHeader.className = 'text-center font-bold text-gray-700 py-2';
+        dayHeader.className = 'text-center font-bold text-gray-700 py-2 text-xs';
         dayHeader.textContent = day.substring(0, 3);
         dayHeaders.appendChild(dayHeader);
     });
@@ -209,7 +245,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
     // Create calendar cells
     const calendarCells = document.createElement('div');
-    calendarCells.className = 'grid grid-cols-7 gap-2';
+    calendarCells.className = 'grid grid-cols-7 gap-1';
 
     // Get all dates in the month
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -222,7 +258,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     const adjustedStartDay = (startDayOfWeek + 6) % 7;
     for (let i = 0; i < adjustedStartDay; i++) {
         const emptyCell = document.createElement('div');
-        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[100px]';
+        emptyCell.className = 'bg-gray-100 rounded-lg min-h-[80px]';
         calendarCells.appendChild(emptyCell);
     }
 
@@ -233,7 +269,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
         const dayName = days[(dayOfWeek + 6) % 7];
 
         const cell = document.createElement('div');
-        cell.className = 'border border-gray-200 rounded-lg p-2 min-h-[100px] bg-white hover:bg-gray-50 cursor-pointer';
+        cell.className = 'border border-gray-200 rounded-lg p-1 min-h-[80px] bg-white hover:bg-gray-50 cursor-pointer';
         cell.onclick = () => openDayDetailModal(dayName, dateString, day);
 
         // Day number
@@ -262,13 +298,13 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
         // Bookings container with scrollbar
         const bookingsContainer = document.createElement('div');
-        bookingsContainer.className = 'space-y-1 max-h-[80px] overflow-y-auto';
+        bookingsContainer.className = 'space-y-1 max-h-[60px] overflow-y-auto';
         
         dayBookings.forEach(booking => {
             const bookingEl = document.createElement('div');
             const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
             bookingEl.className = `text-xs p-1 rounded ${bgColor} truncate`;
-            bookingEl.textContent = `${booking.time} - ${booking.name.substring(0, 10)}`;
+            bookingEl.textContent = booking.name;
             bookingsContainer.appendChild(bookingEl);
         });
 
@@ -739,6 +775,9 @@ window.nextMonth = nextMonth;
 window.openDayDetailModal = openDayDetailModal;
 window.closeDayDetailModal = closeDayDetailModal;
 window.openBookingModalFromDayDetail = openBookingModalFromDayDetail;
+window.openBookingModal = openBookingModal;
+window.closeModal = closeModal;
+window.confirmBooking = confirmBooking;
 
 // Unbook a one-time booking
 async function unbookOneTimeBooking(day, date, time) {
