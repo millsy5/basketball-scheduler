@@ -678,20 +678,26 @@ function closeUnbookOptionsModal() {
 
 // Confirm unbook option
 async function confirmUnbookOption() {
-    if (!pendingUnbook) return;
+    if (!pendingUnbook) {
+        console.error('pendingUnbook is null');
+        return;
+    }
+    
+    // Store the pending unbook info before closing modal
+    const unbookInfo = { ...pendingUnbook };
     
     const selectedOption = document.querySelector('input[name="unbookOption"]:checked').value;
+    
+    closeUnbookOptionsModal();
     
     if (selectedOption === 'single') {
         // Unbook single instance
         console.log('Unbooking single instance of recurring booking');
-        closeUnbookOptionsModal();
-        await unbookSingleInstance(pendingUnbook.day, pendingUnbook.date, pendingUnbook.time);
+        await unbookSingleInstance(unbookInfo.day, unbookInfo.date, unbookInfo.time);
     } else if (selectedOption === 'recurring') {
         // Unbook entire recurring booking
         console.log('Unbooking entire recurring booking');
-        closeUnbookOptionsModal();
-        await unbookRecurringBooking(pendingUnbook.day, pendingUnbook.time);
+        await unbookRecurringBooking(unbookInfo.day, unbookInfo.time);
     }
 }
 
