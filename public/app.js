@@ -202,6 +202,8 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     calendarGrid.id = 'calendarGrid';
     calendarGrid.style.width = '100%';
     calendarGrid.style.maxWidth = '100%';
+    calendarGrid.style.overflow = 'hidden';
+    calendarGrid.style.overflowX = 'hidden';
     
     // Add transition for month changes
     calendarGrid.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
@@ -237,9 +239,13 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     // Create day headers
     const dayHeaders = document.createElement('div');
     dayHeaders.className = 'grid grid-cols-7 gap-1 mb-2 w-full';
+    dayHeaders.style.minWidth = '0';
     days.forEach(day => {
         const dayHeader = document.createElement('div');
         dayHeader.className = 'text-center font-bold text-gray-700 py-2 text-xs';
+        dayHeader.style.minWidth = '0';
+        dayHeader.style.overflow = 'hidden';
+        dayHeader.style.textOverflow = 'ellipsis';
         dayHeader.textContent = day.substring(0, 3);
         dayHeaders.appendChild(dayHeader);
     });
@@ -248,6 +254,7 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
     // Create calendar cells
     const calendarCells = document.createElement('div');
     calendarCells.className = 'grid grid-cols-7 gap-1 w-full';
+    calendarCells.style.minWidth = '0';
 
     // Get all dates in the month
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -272,6 +279,8 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
 
         const cell = document.createElement('div');
         cell.className = 'border border-gray-200 rounded-lg p-1 min-h-[80px] bg-white hover:bg-gray-50 cursor-pointer';
+        cell.style.minWidth = '0';
+        cell.style.overflow = 'hidden';
         cell.onclick = () => openDayDetailModal(dayName, dateString, day);
 
         // Day number
@@ -306,6 +315,9 @@ function renderMonthlyView(scheduleContainer, weeksInMonth) {
             const bookingEl = document.createElement('div');
             const bgColor = booking.gender === 'Girls' ? 'bg-pink-100' : 'bg-blue-100';
             bookingEl.className = `text-xs p-1 rounded ${bgColor} truncate`;
+            bookingEl.style.minWidth = '0';
+            bookingEl.style.overflow = 'hidden';
+            bookingEl.style.textOverflow = 'ellipsis';
             bookingEl.textContent = booking.name;
             bookingsContainer.appendChild(bookingEl);
         });
@@ -471,40 +483,29 @@ function findBookingForDate(date, time) {
 function openBookingModal(day, date, time) {
     selectedSlot = { day, date, time };
     
-    // Check if this is from monthly view (time is '9:00 AM' default)
-    const isMonthlyView = time === '9:00 AM' && viewMode === 'monthly';
+    // Always show time and duration dropdowns (only monthly view now)
+    document.getElementById('timeSelection').classList.remove('hidden');
+    document.getElementById('durationSelection').classList.remove('hidden');
+    document.getElementById('modalSlotInfo').textContent = `${day} (${date})`;
     
-    if (isMonthlyView) {
-        // Show time and duration dropdowns for monthly view
-        document.getElementById('timeSelection').classList.remove('hidden');
-        document.getElementById('durationSelection').classList.remove('hidden');
-        document.getElementById('modalSlotInfo').textContent = `${day} (${date})`;
+    // Populate time dropdown with available times
+    const timeDropdown = document.getElementById('timeDropdown');
+    timeDropdown.innerHTML = '';
+    
+    timeSlots.forEach(t => {
+        const option = document.createElement('option');
+        option.value = t;
+        option.textContent = t;
         
-        // Populate time dropdown with available times
-        const timeDropdown = document.getElementById('timeDropdown');
-        timeDropdown.innerHTML = '';
+        // Check if this time slot is already booked
+        const booking = findBookingForDate(date, t);
+        if (booking) {
+            option.disabled = true;
+            option.textContent += ' (booked)';
+        }
         
-        timeSlots.forEach(t => {
-            const option = document.createElement('option');
-            option.value = t;
-            option.textContent = t;
-            
-            // Check if this time slot is already booked
-            const booking = findBookingForDate(date, t);
-            if (booking) {
-                option.disabled = true;
-                option.textContent += ' (booked)';
-            }
-            
-            timeDropdown.appendChild(option);
-        });
-    } else {
-        // Hide time dropdown for weekly view (time is already selected)
-        document.getElementById('timeSelection').classList.add('hidden');
-        // Show duration dropdown for weekly view
-        document.getElementById('durationSelection').classList.remove('hidden');
-        document.getElementById('modalSlotInfo').textContent = `${day} (${date}) at ${time}`;
-    }
+        timeDropdown.appendChild(option);
+    });
     
     document.getElementById('playerName').value = '';
     document.getElementById('bookingModal').classList.remove('hidden');
@@ -567,17 +568,11 @@ async function confirmBooking() {
     const bookingType = document.querySelector('input[name="bookingType"]:checked').value;
     const gender = document.querySelector('input[name="gender"]:checked').value;
     
-    // Check if this is monthly view booking (time dropdown is visible)
-    const isMonthlyView = !document.getElementById('timeSelection').classList.contains('hidden');
-    
-    let time = selectedSlot.time;
+    // Always get time from dropdown (monthly view only)
+    const time = document.getElementById('timeDropdown').value;
     let duration = 60; // Default 1 hour
     
-    if (isMonthlyView) {
-        time = document.getElementById('timeDropdown').value;
-    }
-    
-    // Get duration from dropdown (available in both views)
+    // Get duration from dropdown
     duration = parseInt(document.getElementById('durationDropdown').value);
     
     if (!name) {
